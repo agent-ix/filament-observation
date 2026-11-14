@@ -3,9 +3,9 @@ id: FR-012
 title: "Export the owned static-bundle fixture for downstream tests"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-observation/US-001
+  - target: ix://agent-ix/filament-observation/US-001
     type: implements
-  - target: ix://agent-ix/quire-observation/FR-001
+  - target: ix://agent-ix/filament-observation/FR-001
     type: depends_on
 ---
 # FR-012: Export the owned static-bundle fixture for downstream tests

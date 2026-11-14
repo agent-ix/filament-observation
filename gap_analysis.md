@@ -2,7 +2,7 @@
 
 ## Overview
 
-This report maps the implemented QObs admission and observation-authority boundary back to
+This report maps the implemented FObs admission and observation-authority boundary back to
 the unified FR-001 through FR-004 and NFR-001/NFR-002 specification. It supersedes the
 earlier replay/result-handoff report because that architecture was explicitly replaced by
 the accepted ecosystem owner model.

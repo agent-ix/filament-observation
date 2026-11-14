@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:agent-ix:quire-observation:authority:1",
+  "$id": "urn:agent-ix:filament-observation:authority:1",
   "title": "Revisioned observation authority bundle v1",
   "type": "object",
   "additionalProperties": false,
@@ -16,7 +16,7 @@
   ],
   "properties": {
     "contract": {
-      "const": "quire.observation-authority/v1"
+      "const": "filament.observation-authority/v1"
     },
     "identity": {
       "type": "string",
@@ -27,10 +27,10 @@
       "minimum": 1
     },
     "authority": {
-      "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+      "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
     },
     "subject": {
-      "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+      "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
     },
     "payload": {
       "type": "object",
@@ -110,10 +110,10 @@
       }
     },
     "predecessor": {
-      "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+      "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
     },
     "limits": {
-      "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+      "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
     }
   },
   "$defs": {
@@ -268,7 +268,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:record:2#/properties/payload/properties/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:2#/properties/payload/properties/subject"
         }
       }
     },
@@ -288,7 +288,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:population:2#/properties/payload/properties/population_identity"
+          "$ref": "urn:agent-ix:filament-observation:population:2#/properties/payload/properties/population_identity"
         }
       }
     },
@@ -308,7 +308,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:position-ledger:1#/properties/payload/properties/ledger_identity"
+          "$ref": "urn:agent-ix:filament-observation:position-ledger:1#/properties/payload/properties/ledger_identity"
         }
       }
     },
@@ -328,7 +328,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:clock-binding:1#/properties/payload/properties/clock_identity"
+          "$ref": "urn:agent-ix:filament-observation:clock-binding:1#/properties/payload/properties/clock_identity"
         }
       }
     },
@@ -348,7 +348,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:partial-fact:1#/properties/payload/properties/observation_identity"
+          "$ref": "urn:agent-ix:filament-observation:partial-fact:1#/properties/payload/properties/observation_identity"
         }
       }
     },
@@ -368,7 +368,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:capture-environment:1#/properties/payload/properties/trigger_identity"
+          "$ref": "urn:agent-ix:filament-observation:capture-environment:1#/properties/payload/properties/trigger_identity"
         }
       }
     },
@@ -388,7 +388,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:progress-assertion:1#/properties/payload/properties/scope_identity"
+          "$ref": "urn:agent-ix:filament-observation:progress-assertion:1#/properties/payload/properties/scope_identity"
         }
       }
     },
@@ -408,7 +408,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:activation-scope-authority:1#/properties/payload/properties/obligation_identity"
+          "$ref": "urn:agent-ix:filament-observation:activation-scope-authority:1#/properties/payload/properties/obligation_identity"
         }
       }
     },
@@ -428,7 +428,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:closure-assertion:1#/properties/payload/properties/scope_identity"
+          "$ref": "urn:agent-ix:filament-observation:closure-assertion:1#/properties/payload/properties/scope_identity"
         }
       }
     },
@@ -448,7 +448,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:completeness-assertion:1#/properties/payload/properties/population_identity"
+          "$ref": "urn:agent-ix:filament-observation:completeness-assertion:1#/properties/payload/properties/population_identity"
         }
       }
     },
@@ -468,7 +468,7 @@
           "$ref": "#/$defs/text"
         },
         "semantic_key": {
-          "$ref": "urn:agent-ix:quire-observation:result-availability:1#/properties/payload/properties/required_results"
+          "$ref": "urn:agent-ix:filament-observation:result-availability:1#/properties/payload/properties/required_results"
         }
       }
     },
@@ -484,7 +484,7 @@
           "const": "observation"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:record:2#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:record:2#/properties/payload"
         }
       }
     },
@@ -500,7 +500,7 @@
           "const": "population"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:population:2#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:population:2#/properties/payload"
         }
       }
     },
@@ -516,7 +516,7 @@
           "const": "position"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:position-ledger:1#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:position-ledger:1#/properties/payload"
         }
       }
     },
@@ -532,7 +532,7 @@
           "const": "clock"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:clock-binding:1#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:clock-binding:1#/properties/payload"
         }
       }
     },
@@ -548,7 +548,7 @@
           "const": "partial"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:partial-fact:1#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:partial-fact:1#/properties/payload"
         }
       }
     },
@@ -564,7 +564,7 @@
           "const": "capture"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:capture-environment:1#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:capture-environment:1#/properties/payload"
         }
       }
     },
@@ -580,7 +580,7 @@
           "const": "progress"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:progress-assertion:1#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:progress-assertion:1#/properties/payload"
         }
       }
     },
@@ -596,7 +596,7 @@
           "const": "activation"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:activation-scope-authority:1#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:activation-scope-authority:1#/properties/payload"
         }
       }
     },
@@ -612,7 +612,7 @@
           "const": "closure"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:closure-assertion:1#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:closure-assertion:1#/properties/payload"
         }
       }
     },
@@ -628,7 +628,7 @@
           "const": "completeness"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:completeness-assertion:1#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:completeness-assertion:1#/properties/payload"
         }
       }
     },
@@ -644,7 +644,7 @@
           "const": "availability"
         },
         "value": {
-          "$ref": "urn:agent-ix:quire-observation:result-availability:1#/properties/payload"
+          "$ref": "urn:agent-ix:filament-observation:result-availability:1#/properties/payload"
         }
       }
     },
@@ -1076,7 +1076,7 @@
     },
     "_owner_record_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:record:1",
+      "$id": "urn:agent-ix:filament-observation:record:1",
       "title": "Observation record owner artifact v1",
       "type": "object",
       "additionalProperties": false,
@@ -1092,7 +1092,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.record/v1"
+          "const": "filament.observation.record/v1"
         },
         "identity": {
           "type": "string",
@@ -1568,7 +1568,7 @@
     },
     "_owner_record_v2": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:record:2",
+      "$id": "urn:agent-ix:filament-observation:record:2",
       "title": "Observation record owner artifact v2",
       "type": "object",
       "additionalProperties": false,
@@ -1584,7 +1584,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.record/v2"
+          "const": "filament.observation.record/v2"
         },
         "identity": {
           "type": "string",
@@ -2126,7 +2126,7 @@
     },
     "_owner_population_v2": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:population:2",
+      "$id": "urn:agent-ix:filament-observation:population:2",
       "title": "Observation population owner artifact v2",
       "type": "object",
       "additionalProperties": false,
@@ -2142,7 +2142,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.population/v2"
+          "const": "filament.observation.population/v2"
         },
         "identity": {
           "type": "string",
@@ -2214,10 +2214,10 @@
           }
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:2#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:2#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:2#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:2#/$defs/limits"
         }
       },
       "$defs": {
@@ -2280,7 +2280,7 @@
           ],
           "properties": {
             "authority": {
-              "$ref": "urn:agent-ix:quire-observation:record:2#/$defs/producerAuthority"
+              "$ref": "urn:agent-ix:filament-observation:record:2#/$defs/producerAuthority"
             },
             "interface_version": {
               "const": "1.2.0"
@@ -2299,7 +2299,7 @@
               "$ref": "#/$defs/text"
             },
             "digest": {
-              "$ref": "urn:agent-ix:quire-observation:record:2#/$defs/producerDigest"
+              "$ref": "urn:agent-ix:filament-observation:record:2#/$defs/producerDigest"
             }
           }
         },
@@ -2355,10 +2355,10 @@
                   "$ref": "#/$defs/text"
                 },
                 "start_nanos": {
-                  "$ref": "urn:agent-ix:quire-observation:record:2#/$defs/integerText"
+                  "$ref": "urn:agent-ix:filament-observation:record:2#/$defs/integerText"
                 },
                 "end_exclusive_nanos": {
-                  "$ref": "urn:agent-ix:quire-observation:record:2#/$defs/integerText"
+                  "$ref": "urn:agent-ix:filament-observation:record:2#/$defs/integerText"
                 }
               }
             }
@@ -2368,7 +2368,7 @@
     },
     "_owner_position_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:position-ledger:1",
+      "$id": "urn:agent-ix:filament-observation:position-ledger:1",
       "title": "Observation position ledger owner artifact v1",
       "type": "object",
       "additionalProperties": false,
@@ -2384,7 +2384,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.position-ledger/v1"
+          "const": "filament.observation.position-ledger/v1"
         },
         "identity": {
           "type": "string",
@@ -2395,10 +2395,10 @@
           "minimum": 1
         },
         "authority": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
         },
         "subject": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
         },
         "payload": {
           "type": "object",
@@ -2447,16 +2447,16 @@
           }
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
         }
       }
     },
     "_owner_clock_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:clock-binding:1",
+      "$id": "urn:agent-ix:filament-observation:clock-binding:1",
       "title": "Observation clock binding owner artifact v1",
       "type": "object",
       "additionalProperties": false,
@@ -2472,7 +2472,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.clock-binding/v1"
+          "const": "filament.observation.clock-binding/v1"
         },
         "identity": {
           "type": "string",
@@ -2483,10 +2483,10 @@
           "minimum": 1
         },
         "authority": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
         },
         "subject": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
         },
         "payload": {
           "type": "object",
@@ -2511,18 +2511,18 @@
           }
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
         }
       },
       "$defs": {
         "natural": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/naturalText"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/naturalText"
         },
         "integer": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/integerText"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/integerText"
         },
         "selection": {
           "oneOf": [
@@ -2600,7 +2600,7 @@
     },
     "_owner_partial_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:partial-fact:1",
+      "$id": "urn:agent-ix:filament-observation:partial-fact:1",
       "title": "Observation partial fact owner artifact v1",
       "type": "object",
       "additionalProperties": false,
@@ -2616,7 +2616,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.partial-fact/v1"
+          "const": "filament.observation.partial-fact/v1"
         },
         "identity": {
           "type": "string",
@@ -2627,10 +2627,10 @@
           "minimum": 1
         },
         "authority": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
         },
         "subject": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
         },
         "payload": {
           "type": "object",
@@ -2754,29 +2754,29 @@
                   "minLength": 1
                 },
                 "earliest": {
-                  "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/integerText"
+                  "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/integerText"
                 },
                 "latest": {
-                  "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/integerText"
+                  "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/integerText"
                 }
               }
             },
             "ingestion_position": {
-              "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/integerText"
+              "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/integerText"
             }
           }
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
         }
       }
     },
     "_owner_capture_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:capture-environment:1",
+      "$id": "urn:agent-ix:filament-observation:capture-environment:1",
       "title": "Observation capture environment owner artifact v1",
       "type": "object",
       "additionalProperties": false,
@@ -2792,7 +2792,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.capture-environment/v1"
+          "const": "filament.observation.capture-environment/v1"
         },
         "identity": {
           "type": "string",
@@ -2803,10 +2803,10 @@
           "minimum": 1
         },
         "authority": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
         },
         "subject": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
         },
         "payload": {
           "type": "object",
@@ -2822,7 +2822,7 @@
               "minLength": 1
             },
             "anchor": {
-              "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/anchor"
+              "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/anchor"
             },
             "bindings": {
               "type": "array",
@@ -2869,16 +2869,16 @@
           }
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
         }
       }
     },
     "_owner_progress_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:progress-assertion:1",
+      "$id": "urn:agent-ix:filament-observation:progress-assertion:1",
       "title": "Observation progress assertion owner artifact v1",
       "type": "object",
       "additionalProperties": false,
@@ -2894,7 +2894,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.progress-assertion/v1"
+          "const": "filament.observation.progress-assertion/v1"
         },
         "identity": {
           "type": "string",
@@ -2905,10 +2905,10 @@
           "minimum": 1
         },
         "authority": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
         },
         "subject": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
         },
         "payload": {
           "type": "object",
@@ -2975,18 +2975,18 @@
           }
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
         }
       },
       "$defs": {
         "natural": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/naturalText"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/naturalText"
         },
         "integer": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/integerText"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/integerText"
         },
         "boundary": {
           "oneOf": [
@@ -3080,7 +3080,7 @@
     },
     "_owner_activation_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:activation-scope-authority:1",
+      "$id": "urn:agent-ix:filament-observation:activation-scope-authority:1",
       "title": "Observation activation and scope authority v1",
       "type": "object",
       "additionalProperties": false,
@@ -3096,7 +3096,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.activation-scope-authority/v1"
+          "const": "filament.observation.activation-scope-authority/v1"
         },
         "identity": {
           "type": "string",
@@ -3107,10 +3107,10 @@
           "minimum": 1
         },
         "authority": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
         },
         "subject": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
         },
         "payload": {
           "type": "object",
@@ -3262,10 +3262,10 @@
           ]
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
         }
       },
       "$defs": {
@@ -3293,10 +3293,10 @@
               "minLength": 1
             },
             "earliest": {
-              "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/integerText"
+              "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/integerText"
             },
             "latest": {
-              "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/integerText"
+              "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/integerText"
             }
           }
         },
@@ -3438,7 +3438,7 @@
     },
     "_owner_closure_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:closure-assertion:1",
+      "$id": "urn:agent-ix:filament-observation:closure-assertion:1",
       "title": "Observation closure assertion owner artifact v1",
       "type": "object",
       "additionalProperties": false,
@@ -3454,7 +3454,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.closure-assertion/v1"
+          "const": "filament.observation.closure-assertion/v1"
         },
         "identity": {
           "type": "string",
@@ -3465,10 +3465,10 @@
           "minimum": 1
         },
         "authority": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
         },
         "subject": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
         },
         "payload": {
           "type": "object",
@@ -3504,7 +3504,7 @@
               }
             },
             "boundary": {
-              "$ref": "urn:agent-ix:quire-observation:progress-assertion:1#/$defs/boundary"
+              "$ref": "urn:agent-ix:filament-observation:progress-assertion:1#/$defs/boundary"
             },
             "state": {
               "enum": [
@@ -3515,16 +3515,16 @@
           }
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
         }
       }
     },
     "_owner_completeness_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:completeness-assertion:1",
+      "$id": "urn:agent-ix:filament-observation:completeness-assertion:1",
       "title": "Observation completeness assertion owner artifact v1",
       "type": "object",
       "additionalProperties": false,
@@ -3540,7 +3540,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.completeness-assertion/v1"
+          "const": "filament.observation.completeness-assertion/v1"
         },
         "identity": {
           "type": "string",
@@ -3551,10 +3551,10 @@
           "minimum": 1
         },
         "authority": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
         },
         "subject": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
         },
         "payload": {
           "type": "object",
@@ -3616,16 +3616,16 @@
           }
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
         }
       }
     },
     "_owner_availability_v1": {
       "$schema": "https://json-schema.org/draft/2020-12/schema",
-      "$id": "urn:agent-ix:quire-observation:result-availability:1",
+      "$id": "urn:agent-ix:filament-observation:result-availability:1",
       "title": "Observation result availability owner artifact v1",
       "type": "object",
       "additionalProperties": false,
@@ -3641,7 +3641,7 @@
       ],
       "properties": {
         "contract": {
-          "const": "quire.observation.result-availability/v1"
+          "const": "filament.observation.result-availability/v1"
         },
         "identity": {
           "type": "string",
@@ -3652,10 +3652,10 @@
           "minimum": 1
         },
         "authority": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/authority"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/authority"
         },
         "subject": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/subject"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/subject"
         },
         "payload": {
           "type": "object",
@@ -3695,10 +3695,10 @@
           }
         },
         "predecessor": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/predecessor"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/predecessor"
         },
         "limits": {
-          "$ref": "urn:agent-ix:quire-observation:record:1#/$defs/limits"
+          "$ref": "urn:agent-ix:filament-observation:record:1#/$defs/limits"
         }
       }
     }

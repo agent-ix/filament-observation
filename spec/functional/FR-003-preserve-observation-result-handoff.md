@@ -3,11 +3,11 @@ id: FR-003
 title: "Expose validated observation authority to consumers"
 type: FR
 relationships:
-  - target: "ix://agent-ix/quire-observation/US-001"
+  - target: "ix://agent-ix/filament-observation/US-001"
     type: "implements"
-  - target: "ix://agent-ix/quire-observation/FR-002"
+  - target: "ix://agent-ix/filament-observation/FR-002"
     type: "depends_on"
-  - target: "ix://agent-ix/quire-observation/FR-004"
+  - target: "ix://agent-ix/filament-observation/FR-004"
     type: "depends_on"
 ---
 # FR-003: Expose validated observation authority to consumers

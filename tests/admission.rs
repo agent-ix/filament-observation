@@ -6,8 +6,8 @@
 
 mod support;
 
+use filament_observation::*;
 use ix_trace_rs::trace;
-use quire_observation::*;
 use support::{order, producer, producer_with_bundle_identity, shipment, ORDER_SHIPMENT};
 
 fn id(value: &str) -> Identity {

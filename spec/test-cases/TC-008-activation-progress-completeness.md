@@ -3,7 +3,7 @@ id: TC-008
 title: "Preserve activation and scope-authority axes"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-observation/FR-008
+  - target: ix://agent-ix/filament-observation/FR-008
     type: verifies
 ---
 # TC-008: Preserve activation and scope-authority axes

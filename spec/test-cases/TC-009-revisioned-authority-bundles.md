@@ -3,7 +3,7 @@ id: TC-009
 title: "Publish immutable revisioned authority bundles"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-observation/FR-009
+  - target: ix://agent-ix/filament-observation/FR-009
     type: verifies
 ---
 # TC-009: Publish immutable revisioned authority bundles

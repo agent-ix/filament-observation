@@ -3,14 +3,14 @@ id: FR-004
 title: "Publish strict observation authority artifacts"
 type: FR
 relationships:
-  - { target: ix://agent-ix/quire-observation/US-001, type: implements }
-  - { target: ix://agent-ix/quire-observation/FR-001, type: depends_on }
-  - { target: ix://agent-ix/quire-specification/FR-260, type: depends_on }
-  - { target: ix://agent-ix/quire-specification/FR-263, type: depends_on }
-  - { target: ix://agent-ix/quire-specification/FR-267, type: depends_on }
-  - { target: ix://agent-ix/quire-specification/FR-268, type: depends_on }
-  - { target: ix://agent-ix/quire-specification/FR-287, type: depends_on }
-  - { target: ix://agent-ix/quire-specification/FR-294, type: depends_on }
+  - { target: ix://agent-ix/filament-observation/US-001, type: implements }
+  - { target: ix://agent-ix/filament-observation/FR-001, type: depends_on }
+  - { target: ix://agent-ix/filament-specification/FR-260, type: depends_on }
+  - { target: ix://agent-ix/filament-specification/FR-263, type: depends_on }
+  - { target: ix://agent-ix/filament-specification/FR-267, type: depends_on }
+  - { target: ix://agent-ix/filament-specification/FR-268, type: depends_on }
+  - { target: ix://agent-ix/filament-specification/FR-287, type: depends_on }
+  - { target: ix://agent-ix/filament-specification/FR-294, type: depends_on }
   - { target: ix://agent-ix/tl-syntax/IF-002, type: implements }
   - { target: ix://agent-ix/tl-syntax/VO-004, type: implements }
 ---
@@ -32,18 +32,18 @@ contracts are:
 
 | Module | Contract | Semantic payload |
 | --- | --- | --- |
-| observation | `quire.observation.record/v2` | FR-260/FR-288 admitted observation, FR-287 authority-qualified subject and correction preimage |
-| population | `quire.observation.population/v2` | FR-263 membership, snapshot/window and exact producer authority |
-| position | `quire.observation.position-ledger/v1` | ordered distinct zero-based positions, observation identities and exact clock identity/revision |
-| clock | `quire.observation.clock-binding/v1` | event-position, fixed-sample or timestamped-event selection and exact parameters |
-| capture | `quire.observation.capture-environment/v1` | immutable trigger/anchor and complete sorted typed value bindings |
-| progress | `quire.observation.progress-assertion/v1` | FR-268 authority, scope, exact clock identity/revision, source set, boundary and `open`/`closed` state |
-| closure | `quire.observation.closure-assertion/v1` | scope, exact clock identity/revision, boundary, source set and `open`/`closed` state |
-| completeness | `quire.observation.completeness-assertion/v1` | exact population/facts and FR-287 state |
-| availability | `quire.observation.result-availability/v1` | required result identities and availability state |
+| observation | `filament.observation.record/v2` | FR-260/FR-288 admitted observation, FR-287 authority-qualified subject and correction preimage |
+| population | `filament.observation.population/v2` | FR-263 membership, snapshot/window and exact producer authority |
+| position | `filament.observation.position-ledger/v1` | ordered distinct zero-based positions, observation identities and exact clock identity/revision |
+| clock | `filament.observation.clock-binding/v1` | event-position, fixed-sample or timestamped-event selection and exact parameters |
+| capture | `filament.observation.capture-environment/v1` | immutable trigger/anchor and complete sorted typed value bindings |
+| progress | `filament.observation.progress-assertion/v1` | FR-268 authority, scope, exact clock identity/revision, source set, boundary and `open`/`closed` state |
+| closure | `filament.observation.closure-assertion/v1` | scope, exact clock identity/revision, boundary, source set and `open`/`closed` state |
+| completeness | `filament.observation.completeness-assertion/v1` | exact population/facts and FR-287 state |
+| availability | `filament.observation.result-availability/v1` | required result identities and availability state |
 
 The population subsystem SHALL additionally publish and strict-read the
-`quire.observation.explicit-members/v1` input contract, whose identity and raw
+`filament.observation.explicit-members/v1` input contract, whose identity and raw
 digest bind the sorted, distinct required-member population.
 
 FR-005 supersedes only the observation and population payload schemas with v2
@@ -59,13 +59,13 @@ only `open` and `closed`. Completeness admits only `complete`, `incomplete`, and
 The progress payload MAY include an `association` array. The array is a
 nonempty, strictly ordered set of owner assertions keyed by model, model node,
 claim occurrence, and observation source. Model, clause, operation, unit and
-dimension nodes are real structural QSL NodeKeys with package, path and ordinal.
-Each node is stored as the canonical text of QSL's `node_wire` codec inside a
+dimension nodes are real structural FSL NodeKeys with package, path and ordinal.
+Each node is stored as the canonical text of FSL's `node_wire` codec inside a
 JSON string; a digest or arbitrary label does not identify one. The claim is a
 typed clause node with exact occurrence role and canonical decimal ordinal.
-A row retains the QSL time source as `dense` or
+A row retains the FSL time source as `dense` or
 `tick`; a tick retains its operation identity and node and positive canonical
-decimal numerator and denominator. Each row also retains its QSL unit name,
+decimal numerator and denominator. Each row also retains its FSL unit name,
 unit node, time dimension node, and the matching admitted observation source,
 clock identity, and revision. The progress reader compares the rows against its
 independent selection and the admitted source and clock context. The public
@@ -89,7 +89,7 @@ predecessor identity for a correction. Limits records effective limits and use.
 
 Identity is lowercase SHA-256 over the contract label, a zero byte, and the
 canonical document bytes with `identity` omitted. Contract-specific identities
-whose preimages are fixed by `quire-specification` SHALL use those exact
+whose preimages are fixed by `filament-specification` SHALL use those exact
 preimages instead. A correction has a greater positive revision, new identity
 and immutable predecessor; it never rewrites prior bytes.
 
@@ -145,15 +145,15 @@ adapter, callback, protocol-result vocabulary or Boolean coercion is admitted.
 | FR-004-AC-4 | Exact and one-over byte/depth/string/population/position/capture/source/work bounds admit or resource-refuse before excess retention. | Test (TC-004) |
 | FR-004-AC-5 | All combinations of independent progress, closure, completeness and availability values remain representable; no combination yields a truth, settlement or Boolean value. | Test (TC-004) |
 | FR-004-AC-6 | Corrections preserve predecessor bytes/direct lineage; late data, restoration and timestamp ordering cannot rewrite authority or manufacture origin/causality. | Test (TC-004) |
-| FR-004-AC-7 | A progress view exposes owner asserted QSL association rows as a canonical value when present. Each row names the selected model, structural model node, typed claim clause node and occurrence, time source kind, tick operation and exact positive period when applicable, structural unit and dimension nodes, and an observation source and clock/revision admitted in the same progress context. Missing rows refuse with `MissingPremise`; foreign source/clock refuse with `ExpectedMismatch`; malformed or duplicate rows refuse with `InvalidSelection`, noncanonical structural node text with `NonCanonical`, and one-over node or value bytes with `ResourceIncomplete`; the association value is encoded once into a sink bounded by the owner output byte ceiling and never retains bytes past it. The document ceiling always covers the value and is what strict reading enforces first; the value-encoder boundary (exact ceiling admitted, one byte over refused) is verified at the encoder. Strict reading compares the exact selected rows. The observation owner asserts these links; QSL checks its own semantic selections independently against the rows. | Test (TC-004) |
+| FR-004-AC-7 | A progress view exposes owner asserted FSL association rows as a canonical value when present. Each row names the selected model, structural model node, typed claim clause node and occurrence, time source kind, tick operation and exact positive period when applicable, structural unit and dimension nodes, and an observation source and clock/revision admitted in the same progress context. Missing rows refuse with `MissingPremise`; foreign source/clock refuse with `ExpectedMismatch`; malformed or duplicate rows refuse with `InvalidSelection`, noncanonical structural node text with `NonCanonical`, and one-over node or value bytes with `ResourceIncomplete`; the association value is encoded once into a sink bounded by the owner output byte ceiling and never retains bytes past it. The document ceiling always covers the value and is what strict reading enforces first; the value-encoder boundary (exact ceiling admitted, one byte over refused) is verified at the encoder. Strict reading compares the exact selected rows. The observation owner asserts these links; FSL checks its own semantic selections independently against the rows. | Test (TC-004) |
 
 ## Dependencies
 
 FR-001 supplies qualified admission and FR-002 supplies deterministic authority
-derivation. `quire-specification` FR-260 through FR-268 and FR-287 through
+derivation. `filament-specification` FR-260 through FR-268 and FR-287 through
 FR-294 own the shared identity, boundary and vocabulary meaning. Downstream
 result and bridge crates consume only the public validated views.
 
 ## Status
 
-Implemented for `quire-observation#15` with traced Rust coverage in TC-004.
+Implemented for `filament-observation#15` with traced Rust coverage in TC-004.

@@ -3,7 +3,7 @@ id: TC-005
 title: "Admit authority-qualified runtime references"
 type: TC
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-005"
+  - target: "ix://agent-ix/filament-observation/FR-005"
     type: "verifies"
 ---
 # TC-005: Admit authority-qualified runtime references

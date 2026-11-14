@@ -3,13 +3,13 @@ id: FR-007
 title: "Preserve partial values and exact clock intervals"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-observation/US-001
+  - target: ix://agent-ix/filament-observation/US-001
     type: implements
-  - target: ix://agent-ix/quire-observation/FR-004
+  - target: ix://agent-ix/filament-observation/FR-004
     type: depends_on
-  - target: ix://agent-ix/quire-specification/FR-160
+  - target: ix://agent-ix/filament-specification/FR-160
     type: references
-  - target: ix://agent-ix/quire-specification/FR-325
+  - target: ix://agent-ix/filament-specification/FR-325
     type: references
 ---
 # FR-007: Preserve partial values and exact clock intervals
@@ -74,5 +74,5 @@ authority fact.
 
 - [FR-004](./FR-004-publish-observation-authority-artifacts.md) owns the existing
   canonical authority-document and strict-reader boundary.
-- QSpec FR-160 owns the multi-valued and interval-order semantics adopted here;
-  QSpec FR-325 owns the I07 bundle shape.
+- FSpec FR-160 owns the multi-valued and interval-order semantics adopted here;
+  FSpec FR-325 owns the I07 bundle shape.

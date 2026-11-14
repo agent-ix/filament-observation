@@ -5,16 +5,16 @@
 
 mod support;
 
-use ix_trace_rs::trace;
-use quire_observation::authority::{
+use filament_observation::authority::{
     self, AuthoritySelection, Context, ErrorCode, History, Limits, OpenClosed, SubjectSelection,
     TemporalBoundary,
 };
-use quire_observation::{
+use filament_observation::{
     admit, AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest,
     Identity, Member, ObservationBinding, PackageSelection, QualifiedObservation, ResourceLimits,
     ScopeKind, ScopeSelection, ValueState, Visibility, NATIVE_LINKED_PACKAGE_FORMAT,
 };
+use ix_trace_rs::trace;
 
 use authority::activation::{
     ActivationSelection, ActivationState, AuthorityProofs, Capture, Contribution, EvidenceState,
@@ -1187,7 +1187,7 @@ fn tc008_schema_rejects_incoherent_trigger_capture_and_classification_states() {
     ))
     .expect("record schema JSON");
     let registry = jsonschema::Registry::new()
-        .add("urn:agent-ix:quire-observation:record:1", record_schema)
+        .add("urn:agent-ix:filament-observation:record:1", record_schema)
         .expect("record schema URI")
         .prepare()
         .expect("record schema registry");

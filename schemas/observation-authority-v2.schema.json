@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:agent-ix:quire-observation:authority:2",
+  "$id": "urn:agent-ix:filament-observation:authority:2",
   "title": "Structurally empty observation authority bundle v2",
   "type": "object",
   "additionalProperties": false,
   "required": ["contract", "identity", "revision", "authority", "subject", "payload", "predecessor", "limits"],
   "properties": {
-    "contract": {"const": "quire.observation-authority/v2"},
+    "contract": {"const": "filament.observation-authority/v2"},
     "identity": {"$ref": "#/$defs/identity"},
     "revision": {"type": "integer", "minimum": 1},
     "authority": {"$ref": "#/$defs/authority"},

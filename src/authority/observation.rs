@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.record/v2` owner artifact.
+//! `filament.observation.record/v2` owner artifact.
 
 use serde::{Deserialize, Serialize};
 
@@ -14,11 +14,11 @@ use crate::{AdmittedRecord, Anchor, Identity, QualifiedSubject, ValueState, Visi
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.record/v2";
+pub const CONTRACT: &str = "filament.observation.record/v2";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] = include_bytes!("../../schemas/observation-record-v2.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "f113c4157c25608b6c61dc085dc0533120d0049d8a54946b966c00e0b82b1ffa";
+pub const SCHEMA_SHA256: &str = "0e41c89713fafe4722a12be39a5ccf6fc5820e6786f623fa199ae0e4e5c7b634";
 
 /// Closed FR-294 timing classification.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -481,7 +481,7 @@ struct ObservationWithoutIdentity<'a> {
 pub fn record_identity(record: &AdmittedRecord, limits: Limits) -> Result<Identity> {
     validate_record(record)?;
     let preimage = ObservationIdentityPreimage {
-        identity_version: "quire.observation.identity/v2",
+        identity_version: "filament.observation.identity/v2",
         observation: without_identity(record),
     };
     common::sha256_jcs(&preimage, limits).map(|value| value.0)
@@ -501,7 +501,7 @@ pub fn cutoff_identity(selection: &CutoffSelection, limits: Limits) -> Result<Id
     }
     common::sha256_jcs(
         &CutoffIdentityPreimage {
-            identity_version: "quire.observation.late-cutoff-identity/v1-draft.1",
+            identity_version: "filament.observation.late-cutoff-identity/v1-draft.1",
             clock_identity: selection.clock_identity.as_str(),
             clock_revision: selection.clock_revision.as_str(),
             cutoff_instant_nanos: selection.instant_nanos.to_string(),

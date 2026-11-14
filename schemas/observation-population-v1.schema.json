@@ -1,9 +1,9 @@
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "urn:agent-ix:quire-observation:population:1",
+  "$schema": "https://json-schema.org/draft/2020-12/schema", "$id": "urn:agent-ix:filament-observation:population:1",
   "title": "Observation population owner artifact v1", "type": "object", "additionalProperties": false,
   "required": ["contract", "identity", "revision", "authority", "subject", "payload", "predecessor", "limits"],
   "properties": {
-    "contract": {"const": "quire.observation.population/v1"}, "identity": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}, "revision": {"type": "integer", "minimum": 1},
+    "contract": {"const": "filament.observation.population/v1"}, "identity": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"}, "revision": {"type": "integer", "minimum": 1},
     "authority": {"$ref": "#/$defs/authority"}, "subject": {"$ref": "#/$defs/subject"},
     "payload": {"type": "object", "additionalProperties": false,
       "required": ["population_identity", "producer", "membership_rule_identity", "membership_digest", "selection", "required_members", "observation_sources", "configuration", "closure", "completeness_dependencies", "progress_dependencies"],

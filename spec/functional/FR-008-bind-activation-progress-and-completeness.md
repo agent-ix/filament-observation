@@ -3,17 +3,17 @@ id: FR-008
 title: "Bind activation, progress, closure, and completeness independently"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-observation/US-001
+  - target: ix://agent-ix/filament-observation/US-001
     type: implements
-  - target: ix://agent-ix/quire-observation/FR-007
+  - target: ix://agent-ix/filament-observation/FR-007
     type: depends_on
-  - target: ix://agent-ix/quire-specification/FR-093
+  - target: ix://agent-ix/filament-specification/FR-093
     type: references
-  - target: ix://agent-ix/quire-specification/FR-112
+  - target: ix://agent-ix/filament-specification/FR-112
     type: references
-  - target: ix://agent-ix/quire-specification/FR-113
+  - target: ix://agent-ix/filament-specification/FR-113
     type: references
-  - target: ix://agent-ix/quire-specification/FR-115
+  - target: ix://agent-ix/filament-specification/FR-115
     type: references
 ---
 # FR-008: Bind activation, progress, closure, and completeness independently
@@ -109,5 +109,5 @@ partially validated assessment record.
 
 - [FR-007](./FR-007-preserve-partial-values-and-clock-intervals.md) supplies the
   exact value-set and interval relations.
-- QSpec FR-093 and FR-113 own activation/time meaning; FR-112 owns population
+- FSpec FR-093 and FR-113 own activation/time meaning; FR-112 owns population
   completeness; FR-115 requires the result axes to remain independent.

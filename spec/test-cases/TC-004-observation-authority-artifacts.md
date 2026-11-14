@@ -3,7 +3,7 @@ id: TC-004
 title: "Publish and read observation authority artifacts"
 type: TC
 relationships:
-  - { target: ix://agent-ix/quire-observation/FR-004, type: verifies }
+  - { target: ix://agent-ix/filament-observation/FR-004, type: verifies }
 ---
 # TC-004: Publish and read observation authority artifacts
 
@@ -32,4 +32,4 @@ implies protocol/TL truth, settlement, conformance or a Boolean verdict.
 
 ## Status
 
-Implemented for `quire-observation#15` in `tests/authority.rs`.
+Implemented for `filament-observation#15` in `tests/authority.rs`.

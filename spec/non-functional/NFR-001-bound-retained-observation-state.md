@@ -4,15 +4,15 @@ title: "Bound retained observation state"
 type: NFR
 quality_attribute: reliability
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-001"
+  - target: "ix://agent-ix/filament-observation/FR-001"
     type: "constrains"
-  - target: "ix://agent-ix/quire-observation/FR-002"
+  - target: "ix://agent-ix/filament-observation/FR-002"
     type: "constrains"
-  - target: "ix://agent-ix/quire-observation/FR-003"
+  - target: "ix://agent-ix/filament-observation/FR-003"
     type: "constrains"
-  - target: "ix://agent-ix/quire-observation/FR-004"
+  - target: "ix://agent-ix/filament-observation/FR-004"
     type: "constrains"
-  - target: "ix://agent-ix/quire-observation/FR-006"
+  - target: "ix://agent-ix/filament-observation/FR-006"
     type: "constrains"
 ---
 # NFR-001: Bound retained observation state

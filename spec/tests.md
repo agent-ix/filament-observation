@@ -1,36 +1,36 @@
 ---
 id: TM-001
-title: "quire-observation campaign test matrix"
+title: "filament-observation campaign test matrix"
 type: TestMatrix
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-001"
+  - target: "ix://agent-ix/filament-observation/FR-001"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-002"
+  - target: "ix://agent-ix/filament-observation/FR-002"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-003"
+  - target: "ix://agent-ix/filament-observation/FR-003"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-004"
+  - target: "ix://agent-ix/filament-observation/FR-004"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-005"
+  - target: "ix://agent-ix/filament-observation/FR-005"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-006"
+  - target: "ix://agent-ix/filament-observation/FR-006"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-007"
+  - target: "ix://agent-ix/filament-observation/FR-007"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-008"
+  - target: "ix://agent-ix/filament-observation/FR-008"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-009"
+  - target: "ix://agent-ix/filament-observation/FR-009"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-010"
+  - target: "ix://agent-ix/filament-observation/FR-010"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-011"
+  - target: "ix://agent-ix/filament-observation/FR-011"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/FR-012"
+  - target: "ix://agent-ix/filament-observation/FR-012"
     type: "covers"
-  - target: "ix://agent-ix/quire-observation/NFR-003"
+  - target: "ix://agent-ix/filament-observation/NFR-003"
     type: "covers"
 ---
-# quire-observation campaign test matrix
+# filament-observation campaign test matrix
 
 ## Functional Requirement Coverage
 
@@ -138,4 +138,4 @@ relationships:
 | Test ID | Purpose | Target | Type |
 |---|---|---|---|
 | IT-001 | Preserve qualified observation authority across local stages | constructor-private validated Rust views | Integration |
-| IT-002 | Preserve uncertainty, repair lineage, and aggregate accounting across pinned consumers | QSL/TL, Protocol, and composed-runtime Rust APIs | Integration |
+| IT-002 | Preserve uncertainty, repair lineage, and aggregate accounting across pinned consumers | FSL/TL, Protocol, and composed-runtime Rust APIs | Integration |

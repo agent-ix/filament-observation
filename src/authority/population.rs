@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.population/v2` owner artifact and FR-263/FR-264 identities.
+//! `filament.observation.population/v2` owner artifact and FR-263/FR-264 identities.
 
 use serde::{Deserialize, Serialize};
 
@@ -17,20 +17,20 @@ use crate::{AdmissionRequest, Digest, Identity, QualifiedObservation, ScopeKind}
 pub use super::Limits;
 
 /// Immutable population owner-contract label.
-pub const CONTRACT: &str = "quire.observation.population/v2";
+pub const CONTRACT: &str = "filament.observation.population/v2";
 /// Immutable explicit-members input-contract label.
-pub const MEMBERSHIP_CONTRACT: &str = "quire.observation.explicit-members/v1";
+pub const MEMBERSHIP_CONTRACT: &str = "filament.observation.explicit-members/v1";
 /// Pinned JSON Schema bytes for [`MEMBERSHIP_CONTRACT`].
 pub const MEMBERSHIP_SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-explicit-members-v1.schema.json");
 /// Lowercase SHA-256 digest of [`MEMBERSHIP_SCHEMA_BYTES`].
 pub const MEMBERSHIP_SCHEMA_SHA256: &str =
-    "408c9d2908c3660d657cea574f52d8531e9ab749ec78c8d058fe5f163df23cce";
+    "2cbd76e4ae05ad38a4c1ac32901ccac5db256a8ef0d689db50cb845fe05655bb";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-population-v2.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "bceba1a2a69d150af05a7f7bea52769560849fd24a8582cb35b0937eee263c01";
+pub const SCHEMA_SHA256: &str = "21de37277c9a69fce347d102361c7abff1f1d1b2b2f2fddbc1c594bbf7c9c14d";
 
 /// Borrowed Producer-interface selection in a validated population.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -319,7 +319,7 @@ pub fn membership_identity(
     ensure_sorted_unique(required_members, effective.max_population_entries)?;
     common::sha256_jcs(
         &MembershipPreimage {
-            identity_version: "quire.observation.explicit-members-identity/v1-draft.1",
+            identity_version: "filament.observation.explicit-members-identity/v1-draft.1",
             members: strings(required_members),
         },
         effective,
@@ -429,7 +429,7 @@ pub fn population_identity(request: &AdmissionRequest, limits: Limits) -> Result
     }
     let closure = closure_wire(scope)?;
     let preimage = PopulationPreimage {
-        identity_version: "quire.observation.population-identity/v2",
+        identity_version: "filament.observation.population-identity/v2",
         producer: ProducerWire {
             authority: ProducerAuthorityWire {
                 bundle_identity: request.producer.bundle_identity().to_owned(),

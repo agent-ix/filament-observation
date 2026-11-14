@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.progress-assertion/v1` owner artifact.
+//! `filament.observation.progress-assertion/v1` owner artifact.
 
-use quire_exact::{NodeKey, Origin};
+use filament_exact::{NodeKey, Origin};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[cfg(test)]
@@ -21,7 +21,7 @@ use super::observation::CutoffSelection;
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.progress-assertion/v1";
+pub const CONTRACT: &str = "filament.observation.progress-assertion/v1";
 /// JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-progress-assertion-v1.schema.json");
@@ -39,9 +39,9 @@ pub struct Selection {
     association: Option<Vec<AssociationRow>>,
 }
 
-/// A structural node identity encoded as the QSL node-wire codec's canonical
+/// A structural node identity encoded as the FSL node-wire codec's canonical
 /// `{"ordinal":n,"package":"...","path":[...]}` text. Shape validation does
-/// not establish membership in a QSL checked package.
+/// not establish membership in a FSL checked package.
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
 pub struct NodeIdentity {
     key: NodeKey,
@@ -52,7 +52,7 @@ impl NodeIdentity {
     /// Encodes a real structural node key under owner byte limits.
     pub fn from_key(key: NodeKey, limits: Limits) -> Result<Self> {
         Self::check_key_size(&key, limits)?;
-        let text = qsl_foundation::node_wire::node_key_to_text(&key).map_err(|_| {
+        let text = fsl_foundation::node_wire::node_key_to_text(&key).map_err(|_| {
             Error::new(
                 ErrorCode::InvalidSelection,
                 "node identity cannot be encoded",
@@ -66,14 +66,14 @@ impl NodeIdentity {
     /// Reads canonical structural node text, refusing malformed and noncanonical forms.
     pub fn from_text(text: &str, limits: Limits) -> Result<Self> {
         Self::check_size(text, limits)?;
-        let key = qsl_foundation::node_wire::node_key_from_text(text).map_err(|_| {
+        let key = fsl_foundation::node_wire::node_key_from_text(text).map_err(|_| {
             Error::new(
                 ErrorCode::InvalidSelection,
                 "node identity has invalid structural components",
                 Usage::default(),
             )
         })?;
-        let canonical = qsl_foundation::node_wire::node_key_to_text(&key).map_err(|_| {
+        let canonical = fsl_foundation::node_wire::node_key_to_text(&key).map_err(|_| {
             Error::new(
                 ErrorCode::InvalidSelection,
                 "node identity cannot be encoded",
@@ -96,7 +96,7 @@ impl NodeIdentity {
     /// Measures the canonical text length without building it, refusing as
     /// soon as the running length passes the owner byte limits.
     fn check_key_size(key: &NodeKey, limits: Limits) -> Result<()> {
-        use quire_exact::{NodeKeyView, PathSegmentView};
+        use filament_exact::{NodeKeyView, PathSegmentView};
         use std::io::{self, Write};
 
         struct Budget(usize);
@@ -280,7 +280,7 @@ impl<'de> Deserialize<'de> for ClaimOccurrence {
         let ordinal = wire.ordinal.parse().map_err(serde::de::Error::custom)?;
         Ok(Self::new(
             wire.clause_node,
-            &Origin::new(quire_exact::Role::new(wire.role), ordinal),
+            &Origin::new(filament_exact::Role::new(wire.role), ordinal),
         ))
     }
 }
@@ -309,7 +309,7 @@ impl Selection {
         }
     }
 
-    /// Selects the exact owner asserted QSL to observation association rows.
+    /// Selects the exact owner asserted FSL to observation association rows.
     #[must_use]
     pub fn with_association(mut self, rows: Vec<AssociationRow>) -> Self {
         self.association = Some(rows);
@@ -317,7 +317,7 @@ impl Selection {
     }
 }
 
-/// Selected QSL time-source shape asserted by this progress owner.
+/// Selected FSL time-source shape asserted by this progress owner.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "kind", rename_all = "kebab-case", deny_unknown_fields)]
 pub enum TimeSource {
@@ -336,18 +336,18 @@ pub enum TimeSource {
     },
 }
 
-/// One explicit owner asserted mapping from a checked QSL selection to admitted progress.
+/// One explicit owner asserted mapping from a checked FSL selection to admitted progress.
 ///
 /// Fields are declared in lexical order of their wire names so that serializing
 /// the struct emits the RFC 8785 member order directly.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct AssociationRow {
-    /// Selected clause node and occurrence for the QSL claim.
+    /// Selected clause node and occurrence for the FSL claim.
     pub claim: ClaimOccurrence,
-    /// Selected QSL model identity.
+    /// Selected FSL model identity.
     pub model: String,
-    /// Selected structural QSL model-node identity.
+    /// Selected structural FSL model-node identity.
     pub model_node: NodeIdentity,
     /// Matching admitted observation clock identity.
     pub observation_clock: String,
@@ -355,13 +355,13 @@ pub struct AssociationRow {
     pub observation_revision: String,
     /// Matching admitted observation source identity.
     pub observation_source: String,
-    /// Selected QSL time-source shape.
+    /// Selected FSL time-source shape.
     pub source: TimeSource,
-    /// Selected structural QSL time-dimension node identity.
+    /// Selected structural FSL time-dimension node identity.
     pub time_dimension: NodeIdentity,
-    /// Selected QSL unit name.
+    /// Selected FSL unit name.
     pub unit: String,
-    /// Selected structural QSL unit-node identity.
+    /// Selected structural FSL unit-node identity.
     pub unit_node: NodeIdentity,
 }
 
@@ -542,7 +542,7 @@ impl Validated<ProgressView> {
             }),
             _ => Err(Error::new(
                 ErrorCode::MissingPremise,
-                "progress has no QSL association",
+                "progress has no FSL association",
                 Usage::default(),
             )),
         }
@@ -557,7 +557,7 @@ impl Validated<ProgressView> {
         self.payload().association_value.as_deref().ok_or_else(|| {
             Error::new(
                 ErrorCode::MissingPremise,
-                "progress has no QSL association",
+                "progress has no FSL association",
                 Usage::default(),
             )
         })
@@ -636,7 +636,7 @@ fn validate_association(
         {
             return Err(Error::new(
                 ErrorCode::InvalidSelection,
-                "association QSL identities must be explicit",
+                "association FSL identities must be explicit",
                 Usage::default(),
             ));
         }
@@ -827,9 +827,9 @@ pub fn derive(context: Context<'_>, selection: &Selection, limits: Limits) -> Re
     let authority_identity = super::common::sha256_jcs(
         &AuthorityIdentityPreimage {
             identity_version: if qualified.records().is_empty() {
-                "quire.observation.progress-authority-identity/v2-draft.1"
+                "filament.observation.progress-authority-identity/v2-draft.1"
             } else {
-                "quire.observation.progress-authority-identity/v1-draft.1"
+                "filament.observation.progress-authority-identity/v1-draft.1"
             },
             definition_identity: authority_selection.definition_identity.as_str(),
             definition_revision: authority_selection.definition_revision.as_str(),
@@ -930,7 +930,7 @@ pub(crate) fn commits_empty_binding(
 ) -> Result<bool> {
     commits_binding_mode(
         view,
-        "quire.observation.progress-authority-identity/v2-draft.1",
+        "filament.observation.progress-authority-identity/v2-draft.1",
         Some(binding_identity),
         limits,
     )
@@ -939,7 +939,7 @@ pub(crate) fn commits_empty_binding(
 pub(crate) fn commits_captured_history(view: &View, limits: Limits) -> Result<bool> {
     commits_binding_mode(
         view,
-        "quire.observation.progress-authority-identity/v1-draft.1",
+        "filament.observation.progress-authority-identity/v1-draft.1",
         None,
         limits,
     )
@@ -995,11 +995,11 @@ mod tests {
     fn key_guard_admits_exact_canonical_length_and_refuses_one_under() {
         let key = NodeKey::new(
             "Checkout",
-            vec![quire_exact::PathSegment::Text("model".to_owned())],
+            vec![filament_exact::PathSegment::Text("model".to_owned())],
             7,
         )
         .expect("key");
-        let text = qsl_foundation::node_wire::node_key_to_text(&key).expect("canonical text");
+        let text = fsl_foundation::node_wire::node_key_to_text(&key).expect("canonical text");
         let mut limits = Limits::owner_max();
         limits.max_string_bytes = text.len();
         NodeIdentity::check_key_size(&key, limits).expect("exact string bound");
@@ -1026,7 +1026,7 @@ mod tests {
     fn node(label: &str) -> NodeIdentity {
         let key = NodeKey::new(
             "Checkout",
-            vec![quire_exact::PathSegment::Text(label.to_owned())],
+            vec![filament_exact::PathSegment::Text(label.to_owned())],
             0,
         )
         .expect("key");
@@ -1037,7 +1037,7 @@ mod tests {
         AssociationRow {
             claim: ClaimOccurrence::new(
                 node("clause"),
-                &Origin::new(quire_exact::Role::new("claim"), 2),
+                &Origin::new(filament_exact::Role::new("claim"), 2),
             ),
             model: "model:checkout".to_owned(),
             model_node: node("model"),

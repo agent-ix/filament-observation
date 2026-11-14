@@ -3,7 +3,7 @@ id: TC-014
 title: "Export the owned test fixture"
 type: TC
 relationships:
-  - { target: ix://agent-ix/quire-observation/FR-012, type: verifies }
+  - { target: ix://agent-ix/filament-observation/FR-012, type: verifies }
 ---
 # TC-014: Export the owned test fixture
 

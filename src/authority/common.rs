@@ -1419,8 +1419,10 @@ pub(crate) fn preflight_for_contract(
     contract: &str,
 ) -> Result<Usage> {
     let profile = match contract {
-        "quire.observation-authority/v1" | "quire.observation-authority/v2" => ScanProfile::Bundle,
-        "quire.observation-authority-lineage/v1" => ScanProfile::Lineage,
+        "filament.observation-authority/v1" | "filament.observation-authority/v2" => {
+            ScanProfile::Bundle
+        }
+        "filament.observation-authority-lineage/v1" => ScanProfile::Lineage,
         _ => ScanProfile::Generic,
     };
     preflight_with_profile(bytes, limits, profile)
@@ -1930,7 +1932,7 @@ mod scan_tests {
             |usage| usage.required_sources,
         );
         assert_escaped_key_is_bounded(
-            "quire.observation-authority/v1",
+            "filament.observation-authority/v1",
             br#"{"payload":{"compon\u0065nts":[{},{}]}}"#,
             Limits {
                 max_bundle_components: 1,
@@ -1939,7 +1941,7 @@ mod scan_tests {
             |usage| usage.bundle_components,
         );
         assert_escaped_key_is_bounded(
-            "quire.observation-authority/v1",
+            "filament.observation-authority/v1",
             br#"{"payload":{"replacem\u0065nts":[{},{}]}}"#,
             Limits {
                 max_replacements: 1,
@@ -1948,7 +1950,7 @@ mod scan_tests {
             |usage| usage.replacements,
         );
         assert_escaped_key_is_bounded(
-            "quire.observation-authority/v1",
+            "filament.observation-authority/v1",
             br#"{"payload":{"confli\u0063ts":[{},{}]}}"#,
             Limits {
                 max_conflicts: 1,
@@ -1957,7 +1959,7 @@ mod scan_tests {
             |usage| usage.conflicts,
         );
         assert_escaped_key_is_bounded(
-            "quire.observation-authority-lineage/v1",
+            "filament.observation-authority-lineage/v1",
             br#"{"direct_chil\u0064ren":[{},{}]}"#,
             Limits {
                 max_lineage_children: 1,

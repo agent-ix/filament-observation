@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.result-availability/v1` owner artifact.
+//! `filament.observation.result-availability/v1` owner artifact.
 
 use serde::{Deserialize, Serialize};
 
@@ -14,12 +14,12 @@ use crate::Identity;
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.result-availability/v1";
+pub const CONTRACT: &str = "filament.observation.result-availability/v1";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-result-availability-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "2e6c00d6dc94a00b0859b346dc12a14c7142735a565e35d15b85895d311e8416";
+pub const SCHEMA_SHA256: &str = "359c5c16ce1c808f77d7f5853a688b22b90e58ed0323d36826ea90b77fba9080";
 
 /// Closed result-availability assertion vocabulary.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

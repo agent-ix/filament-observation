@@ -1,4 +1,4 @@
-# quire-observation
+# filament-observation
 
 ## Hash / digest / pin antipattern: present, slated for removal
 

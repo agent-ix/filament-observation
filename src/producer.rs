@@ -3,7 +3,7 @@
 
 //! This crate's own local Producer-interface 1.2 admission surface.
 //!
-//! `quire-observation` previously consumed `AdmittedStaticBundle`,
+//! `filament-observation` previously consumed `AdmittedStaticBundle`,
 //! `StaticProducerBundle` and `RelationshipDeclaration` from the
 //! `agent-ix-baseline-producer` crate (`filament-core-data`). That dependency
 //! is dropped entirely: this module is a decoupled, locally owned replacement

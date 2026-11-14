@@ -3,7 +3,7 @@
 
 #![allow(dead_code)]
 
-use quire_observation::{
+use filament_observation::{
     AdmittedStaticBundle, QualifiedSubject, StaticProducerBundle, SubjectIdentity, SubjectKind,
 };
 

@@ -1,16 +1,16 @@
-# quire-observation
+# filament-observation
 
 [![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white)](https://discord.gg/k8DVhuYBR2)
-[![Quire](https://img.shields.io/badge/Quire-Specification%20Language-1F6FEB)](https://github.com/agent-ix/quire-spec-language)
+[![Filament](https://img.shields.io/badge/Filament-Specification%20Language-1F6FEB)](https://github.com/agent-ix/filament-spec-language)
 
-quire-observation is a Rust library that turns a raw signal from a running
+filament-observation is a Rust library that turns a raw signal from a running
 system into a qualified observation. The result does not depend on how the signal was transported.
 
 It checks the source, schema, subject, clock, window and population that the
 caller selected for each signal. The result is `Available` for a fully qualified
 set, `Incomplete` when a value, member or relationship is missing, or `Refused`
 with a typed cause when a selection does not match. Rule evaluators such as
-quire-mltl and quire-protocol use the `Available` observation as their data.
+filament-mltl and filament-protocol use the `Available` observation as their data.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/hero-dark.svg">
@@ -84,18 +84,18 @@ or own an evidence store. The Producer interface 1.2 static bundle it admits
 validated by this crate's own code, and a test fixture of that shape lives in
 [`tests/fixtures/`](tests/fixtures/).
 
-## Quire ecosystem
+## Filament ecosystem
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/ecosystem-dark.svg">
-  <img alt="The Quire repositories. The main chain runs from the standard, quire-specification, to the compiler, quire-spec-language, then quire-contract-ir, quire-contract-codegen and quire-contract-runtime. quire-spec-language also feeds quire-protocol, and quire-contract-ir feeds quire-analyze. quire-observation feeds quire-protocol and quire-mltl. Above the chain, quire-driver runs it, quire-integration tests it and quire-verification plans verification. Below it, shared libraries used throughout: quire-eval, quire-exact, quire-semantic-value, quire-walk, quire-canonical and quire-verification-contracts." src="docs/images/ecosystem-light.svg">
+  <img alt="The Quire repositories. The main chain runs from the standard, filament-specification, to the compiler, filament-spec-language, then filament-contract-ir, filament-contract-codegen and filament-contract-runtime. filament-spec-language also feeds filament-protocol, and filament-contract-ir feeds filament-analyze. filament-observation feeds filament-protocol and filament-mltl. Above the chain, filament-driver runs it, filament-integration tests it and filament-verification plans verification. Below it, shared libraries used throughout: filament-eval, filament-exact, filament-semantic-value, filament-walk, quire-canonical and filament-verification-contracts." src="docs/images/ecosystem-light.svg">
 </picture>
 
-quire-observation depends on
+filament-observation depends on
 [quire-canonical](https://github.com/agent-ix/quire-canonical) for canonical JSON,
-[quire-exact](https://github.com/agent-ix/quire-exact) for structural node identities,
-and QSL foundation's node-wire codec for their canonical spelling.
-[quire-mltl](https://github.com/agent-ix/quire-mltl) and [quire-protocol](https://github.com/agent-ix/quire-protocol) depend on this crate.
+[filament-exact](https://github.com/agent-ix/filament-exact) for structural node identities,
+and FSL foundation's node-wire codec for their canonical spelling.
+[filament-mltl](https://github.com/agent-ix/filament-mltl) and [filament-protocol](https://github.com/agent-ix/filament-protocol) depend on this crate.
 
 
 ## Building and testing

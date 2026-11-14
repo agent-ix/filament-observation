@@ -3,15 +3,15 @@ id: FR-009
 title: "Publish revisioned observation authority bundles"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-observation/US-001
+  - target: ix://agent-ix/filament-observation/US-001
     type: implements
-  - target: ix://agent-ix/quire-observation/FR-007
+  - target: ix://agent-ix/filament-observation/FR-007
     type: depends_on
-  - target: ix://agent-ix/quire-observation/FR-008
+  - target: ix://agent-ix/filament-observation/FR-008
     type: depends_on
-  - target: ix://agent-ix/quire-specification/FR-160
+  - target: ix://agent-ix/filament-specification/FR-160
     type: references
-  - target: ix://agent-ix/quire-specification/FR-325
+  - target: ix://agent-ix/filament-specification/FR-325
     type: references
 ---
 # FR-009: Publish revisioned observation authority bundles
@@ -20,8 +20,8 @@ relationships:
 
 When the selected observation authority is exported, the library SHALL publish
 one canonical immutable bundle keyed by its authority, scope, positive revision,
-and exact `quire.observation-authority/v1` or
-`quire.observation-authority/v2` contract with explicit
+and exact `filament.observation-authority/v1` or
+`filament.observation-authority/v2` contract with explicit
 predecessor/supersession relations. The library SHALL select v1 for a nonempty
 population and v2 only for a structurally empty population.
 
@@ -112,5 +112,5 @@ not form one revision lineage.
 - [FR-007](./FR-007-preserve-partial-values-and-clock-intervals.md) and
   [FR-008](./FR-008-bind-activation-progress-and-completeness.md) supply the
   complete-V1 facts.
-- QSpec FR-325 defines the I07 bundle contract; QSpec FR-160 defines revisioned
+- FSpec FR-325 defines the I07 bundle contract; FSpec FR-160 defines revisioned
   uncertainty semantics.

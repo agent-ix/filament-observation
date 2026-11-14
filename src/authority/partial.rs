@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.partial-fact/v1` owner artifact and exact interval algebra.
+//! `filament.observation.partial-fact/v1` owner artifact and exact interval algebra.
 
 use serde::{Deserialize, Serialize};
 
@@ -14,12 +14,12 @@ use crate::Identity;
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.partial-fact/v1";
+pub const CONTRACT: &str = "filament.observation.partial-fact/v1";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-partial-fact-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "9dc068376a7db5a7509810910c36e2efff6b9c3701d83c474701ec572f13f23c";
+pub const SCHEMA_SHA256: &str = "76e3f51193955ba592f1e93088ae52d0f332c2e960cf328d4a5642eca024ae3a";
 
 /// Closed explanation for a Boolean possibility set.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

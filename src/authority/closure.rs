@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.closure-assertion/v1` owner artifact.
+//! `filament.observation.closure-assertion/v1` owner artifact.
 
 use serde::{Deserialize, Serialize};
 
@@ -18,12 +18,12 @@ use crate::Identity;
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.closure-assertion/v1";
+pub const CONTRACT: &str = "filament.observation.closure-assertion/v1";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-closure-assertion-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "8638fb9f4dd5a26d44ae9975388fc734670992914422e23c27eaae82149245f4";
+pub const SCHEMA_SHA256: &str = "e425afc38f09294131ed850b8db6dec7556c011f45e3d7e13502471350ea8506";
 
 /// Exact clock, sources, boundary, and independent closure selection.
 #[derive(Clone, Debug, Eq, PartialEq)]

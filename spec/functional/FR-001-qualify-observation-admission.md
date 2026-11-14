@@ -3,9 +3,9 @@ id: FR-001
 title: "Qualify observation admission without ambient inference"
 type: FR
 relationships:
-  - target: "ix://agent-ix/quire-observation/US-001"
+  - target: "ix://agent-ix/filament-observation/US-001"
     type: "implements"
-  - target: "ix://agent-ix/quire-observation/FR-005"
+  - target: "ix://agent-ix/filament-observation/FR-005"
     type: "references"
 ---
 # FR-001: Qualify observation admission without ambient inference
@@ -21,7 +21,7 @@ incomplete outcome.
 - A `native-linked-package/1` identity, revision, and digest.
 - An admitted Producer interface 1.2.0 static-bundle capability.
 - One binding, bounded related-subject relationship set, strict-read
-  `quire.observation.explicit-members/v1` selection, finite scope, record set,
+  `filament.observation.explicit-members/v1` selection, finite scope, record set,
   and explicit record, member, relationship, and required-relationship limits.
 
 ## Outputs
@@ -83,12 +83,12 @@ typed refusal conditions.
 ## Dependencies
 
 - [US-001](../usecase/US-001-qualify-observations.md) defines the consumer need.
-- **Upstream**: `agent-ix/quire-spec-language` owns semantic package compilation
+- **Upstream**: `agent-ix/filament-spec-language` owns semantic package compilation
   and exports the `native-linked-package/1` selection and producer-definition
   digest. This library treats member object identities as opaque, but owns the
   FR-263/FR-264 population and explicit-members canonical identities and verifies
   them through its strict readers. Closure authority is also owned here;
-  `quire-protocol` owns only protocol-result canonicalization.
+  `filament-protocol` owns only protocol-result canonicalization.
 - Producer interface 1.2.0 is admitted by this library's own local admission
   code (`crate::producer`), as defined by
   [FR-005](FR-005-adopt-authority-qualified-runtime-references.md). The
