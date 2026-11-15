@@ -3,7 +3,7 @@ id: TC-012
 title: "Bound and reproduce C00 observation work"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-observation/NFR-003
+  - target: ix://agent-ix/filament-observation/NFR-003
     type: verifies
 ---
 # TC-012: Bound and reproduce C00 observation work

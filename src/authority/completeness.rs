@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.completeness-assertion/v1` owner artifact.
+//! `filament.observation.completeness-assertion/v1` owner artifact.
 
 use serde::{Deserialize, Serialize};
 
@@ -14,12 +14,12 @@ use crate::Identity;
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.completeness-assertion/v1";
+pub const CONTRACT: &str = "filament.observation.completeness-assertion/v1";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-completeness-assertion-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "b7c3c48d5f907cfb5bd7b4450e009b6c95f7d558095ece8b81d2ae1d5821bcf0";
+pub const SCHEMA_SHA256: &str = "f3267d907e3aa4ea9ce255eb1d984e93e3f1a4eb8b8d7b6e9f82b574d5a404f0";
 
 /// Per-member input completeness status.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]

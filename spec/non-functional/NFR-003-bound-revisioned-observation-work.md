@@ -4,15 +4,15 @@ title: "Bound and reproduce revisioned observation work"
 type: NFR
 quality_attribute: reliability
 relationships:
-  - target: ix://agent-ix/quire-observation/FR-007
+  - target: ix://agent-ix/filament-observation/FR-007
     type: constrains
-  - target: ix://agent-ix/quire-observation/FR-008
+  - target: ix://agent-ix/filament-observation/FR-008
     type: constrains
-  - target: ix://agent-ix/quire-observation/FR-009
+  - target: ix://agent-ix/filament-observation/FR-009
     type: constrains
-  - target: ix://agent-ix/quire-observation/FR-010
+  - target: ix://agent-ix/filament-observation/FR-010
     type: constrains
-  - target: ix://agent-ix/quire-observation/FR-011
+  - target: ix://agent-ix/filament-observation/FR-011
     type: constrains
 ---
 # NFR-003: Bound and reproduce revisioned observation work

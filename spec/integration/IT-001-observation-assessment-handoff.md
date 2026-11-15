@@ -3,13 +3,13 @@ id: IT-001
 title: "Hand qualified observation assessment to a consumer"
 type: IT
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-001"
+  - target: "ix://agent-ix/filament-observation/FR-001"
     type: "verifies"
-  - target: "ix://agent-ix/quire-observation/FR-002"
+  - target: "ix://agent-ix/filament-observation/FR-002"
     type: "verifies"
-  - target: "ix://agent-ix/quire-observation/FR-003"
+  - target: "ix://agent-ix/filament-observation/FR-003"
     type: "verifies"
-  - target: "ix://agent-ix/quire-observation/FR-004"
+  - target: "ix://agent-ix/filament-observation/FR-004"
     type: "verifies"
 ---
 # IT-001: Hand qualified observation authority to a consumer

@@ -3,9 +3,9 @@ id: TC-010
 title: "Agree batch, incremental, and repaired authority"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-observation/FR-010
+  - target: ix://agent-ix/filament-observation/FR-010
     type: verifies
-  - target: ix://agent-ix/quire-observation/NFR-003
+  - target: ix://agent-ix/filament-observation/NFR-003
     type: verifies
 ---
 # TC-010: Agree batch, incremental, and repaired authority

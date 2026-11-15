@@ -8,7 +8,7 @@ allow = [
 # Keep the registry dependency allow-list permissive-only.
 exceptions = [
     { allow = ["AGPL-3.0-or-later"], crate = "quire-canonical" },
-    { allow = ["AGPL-3.0-or-later"], crate = "quire-observation" },
+    { allow = ["AGPL-3.0-or-later"], crate = "filament-observation" },
 ]
 confidence-threshold = 0.9
 

@@ -3,7 +3,7 @@ id: TC-001
 title: "Qualify explicit observation admission"
 type: TC
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-001"
+  - target: "ix://agent-ix/filament-observation/FR-001"
     type: "verifies"
 ---
 # TC-001: Qualify explicit observation admission

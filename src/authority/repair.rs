@@ -18,7 +18,7 @@ use super::common::{to_bounded_json, Error, ErrorCode, Result, Usage as Authorit
 use crate::{ClockRange, Identity};
 
 /// Exact canonical wire contract emitted for repair plans.
-pub const CONTRACT: &str = "quire.observation.repair-plan/v1";
+pub const CONTRACT: &str = "filament.observation.repair-plan/v1";
 
 /// Immutable owner maxima for repair planning.
 pub const OWNER_MAX: Limits = Limits {

@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "urn:agent-ix:quire-observation:record:2",
+  "$id": "urn:agent-ix:filament-observation:record:2",
   "title": "Observation record owner artifact v2",
   "type": "object",
   "additionalProperties": false,
   "required": ["contract", "identity", "revision", "authority", "subject", "payload", "predecessor", "limits"],
   "properties": {
-    "contract": {"const": "quire.observation.record/v2"},
+    "contract": {"const": "filament.observation.record/v2"},
     "identity": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
     "revision": {"type": "integer", "minimum": 1},
     "authority": {"$ref": "#/$defs/authority"},

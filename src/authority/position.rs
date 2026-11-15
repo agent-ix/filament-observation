@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.position-ledger/v1` owner artifact.
+//! `filament.observation.position-ledger/v1` owner artifact.
 
 use std::collections::BTreeSet;
 
@@ -16,12 +16,12 @@ use crate::Identity;
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.position-ledger/v1";
+pub const CONTRACT: &str = "filament.observation.position-ledger/v1";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-position-ledger-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "aac2fd7fc1b129e24afec397900647f3fe8977341b9907662a3852ac5430211a";
+pub const SCHEMA_SHA256: &str = "4d0833c40e6d25d6c49231b2d075655f61d5fd48c8f2c7349d8b1afc34b230f4";
 
 /// One explicit zero-based observation position.
 #[derive(Clone, Debug, Eq, PartialEq)]

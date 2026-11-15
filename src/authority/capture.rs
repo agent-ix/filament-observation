@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.capture-environment/v1` owner artifact.
+//! `filament.observation.capture-environment/v1` owner artifact.
 
 use std::collections::BTreeSet;
 
@@ -16,12 +16,12 @@ use crate::{Anchor, Identity, ValueState};
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.capture-environment/v1";
+pub const CONTRACT: &str = "filament.observation.capture-environment/v1";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-capture-environment-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "6d9260d3c4de65b5c3304debdb9baa7816aaea55949839924182d1db4c24c516";
+pub const SCHEMA_SHA256: &str = "a200c5ca8c13065c0b0587cfca65fd5516bca7eb0ac5f836ca90f83fb70b15b4";
 
 /// One capture name bound to one exact observation and semantic binding.
 #[derive(Clone, Debug, Eq, PartialEq)]

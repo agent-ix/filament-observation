@@ -3,7 +3,7 @@ id: TC-007
 title: "Preserve partial values and interval order"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-observation/FR-007
+  - target: ix://agent-ix/filament-observation/FR-007
     type: verifies
 ---
 # TC-007: Preserve partial values and interval order

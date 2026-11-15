@@ -172,12 +172,12 @@ impl SilenceCoverage {
 }
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.activation-scope-authority/v1";
+pub const CONTRACT: &str = "filament.observation.activation-scope-authority/v1";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-activation-scope-authority-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "c17ad8b3ec10c48e535bc3a762738b979206c01af20c31775d8a9a9e0a97fab6";
+pub const SCHEMA_SHA256: &str = "834aa7e03266a8ec837ef63958d02ac489aa5a299d13e2cc8d0bcc8ac797ceac";
 
 /// Optional evaluator-owned contribution with an exact nonempty support set.
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -1511,9 +1511,9 @@ fn activation_scope_identity(
     };
     let preimage = ActivationPreimage {
         identity_version: if trigger_observation_identity.is_none() {
-            "quire.observation.activation/v3"
+            "filament.observation.activation/v3"
         } else {
-            "quire.observation.activation/v2"
+            "filament.observation.activation/v2"
         },
         obligation_identity: obligation_identity.as_str(),
         binding_identity: retained_binding_identity,

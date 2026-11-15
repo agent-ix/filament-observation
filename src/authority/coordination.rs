@@ -2032,7 +2032,11 @@ fn validate_support_and_digest(
     }
 
     let mut hasher = Sha256::new();
-    hash_field(&mut hasher, b"quire.observation.decision-evidence/v1", work)?;
+    hash_field(
+        &mut hasher,
+        b"filament.observation.decision-evidence/v1",
+        work,
+    )?;
     for input in evidence.values() {
         hash_input(&mut hasher, *input, work)?;
     }
@@ -2075,7 +2079,7 @@ fn derive_selection_digest(
     let mut hasher = Sha256::new();
     hash_field(
         &mut hasher,
-        b"quire.observation.complete-selection/v1",
+        b"filament.observation.complete-selection/v1",
         work,
     )?;
     let mut external_by_identity: BTreeMap<_, _> = external
@@ -2196,7 +2200,7 @@ fn build_replacement(
 ) -> Result<ReplacementResult> {
     let evaluator_digest = Digest::new(Sha256::digest(&evaluator_bytes).into());
     let wire = ReplacementWire {
-        contract: "quire.observation.repair-result/v1",
+        contract: "filament.observation.repair-result/v1",
         plan_identity: plan.identity().as_str(),
         prior_identity: prepared.prior.identity().as_str(),
         prior_digest: format!("sha256:{:x}", Sha256::digest(prepared.prior.bytes())),
@@ -2239,7 +2243,7 @@ fn replacement_state_bytes_before_build(
 ) -> Result<usize> {
     let evaluator_digest = Digest::new(Sha256::digest(evaluator_bytes).into());
     let wire = ReplacementWire {
-        contract: "quire.observation.repair-result/v1",
+        contract: "filament.observation.repair-result/v1",
         plan_identity: plan.identity().as_str(),
         prior_identity: prepared.prior.identity().as_str(),
         prior_digest: format!("sha256:{:x}", Sha256::digest(prepared.prior.bytes())),
@@ -2456,7 +2460,7 @@ fn encode_run(
         .collect::<Result<_>>()?;
     to_bounded_json(
         &RunWire {
-            contract: "quire.observation.repair-run/v1",
+            contract: "filament.observation.repair-run/v1",
             plan_identity: plan.identity().as_str(),
             outcomes: outcome_wires,
             unaffected: unaffected_wires,

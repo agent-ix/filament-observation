@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `quire.observation.clock-binding/v1` owner artifact.
+//! `filament.observation.clock-binding/v1` owner artifact.
 
 use serde::{Deserialize, Serialize};
 
@@ -14,12 +14,12 @@ use crate::{ClockRange, Identity};
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "quire.observation.clock-binding/v1";
+pub const CONTRACT: &str = "filament.observation.clock-binding/v1";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-clock-binding-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "c9a7b154a2c2d775ba71ba001842e6f0595e123c07b23a2bb37215c1f05de38d";
+pub const SCHEMA_SHA256: &str = "cd438f567fe31e400c476e0c6eaad3b0b7f4f1e4b3ff24f5365c5acc6e114cd4";
 
 /// Exact clock identity and revision selection.
 #[derive(Clone, Debug, Eq, PartialEq)]

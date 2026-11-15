@@ -5,15 +5,15 @@
 
 mod support;
 
-use ix_trace_rs::trace;
-use quire_observation::authority::{
+use filament_observation::authority::{
     self, AuthoritySelection, Context, ErrorCode, History, Limits, SubjectSelection,
 };
-use quire_observation::{
+use filament_observation::{
     admit, AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest,
     Identity, Member, ObservationBinding, PackageSelection, QualifiedObservation, ResourceLimits,
     ScopeKind, ScopeSelection, ValueState, Visibility, NATIVE_LINKED_PACKAGE_FORMAT,
 };
+use ix_trace_rs::trace;
 
 use authority::partial::{EventTimeInterval, PossibilitySet, ValueReason};
 use support::{order, producer};

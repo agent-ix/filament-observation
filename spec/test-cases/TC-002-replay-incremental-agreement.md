@@ -3,7 +3,7 @@ id: TC-002
 title: "Agree bounded batch and incremental authority derivation"
 type: TC
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-002"
+  - target: "ix://agent-ix/filament-observation/FR-002"
     type: "verifies"
 ---
 # TC-002: Agree bounded batch and incremental authority derivation

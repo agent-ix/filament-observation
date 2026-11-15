@@ -3,13 +3,13 @@ id: FR-006
 title: "Preserve finite topology and anchored temporal boundaries without evaluation"
 type: FR
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-004"
+  - target: "ix://agent-ix/filament-observation/FR-004"
     type: "depends_on"
-  - target: "ix://agent-ix/quire-observation/FR-005"
+  - target: "ix://agent-ix/filament-observation/FR-005"
     type: "depends_on"
-  - target: "ix://agent-ix/quire-specification/FR-262"
+  - target: "ix://agent-ix/filament-specification/FR-262"
     type: "references"
-  - target: "ix://agent-ix/quire-specification/FR-289"
+  - target: "ix://agent-ix/filament-specification/FR-289"
     type: "references"
 ---
 # FR-006: Preserve finite topology and anchored temporal boundaries without evaluation
@@ -40,7 +40,7 @@ without evaluating reachability, settlement, conformance, or truth.
   recursive expansion, or implicit traversal, so it SHALL NOT invent a path
   depth or graph-expansion result under those ceilings.
 - A future reachability or topology-policy operation would be a separately
-  specified evaluator. QSpec FR-043 and Contract-IR #69 remain the owners of
+  specified evaluator. FSpec FR-043 and Contract-IR #69 remain the owners of
   finite-graph evaluation; observation admission SHALL NOT approximate them.
 
 ## Anchored temporal-boundary subsystem
@@ -79,10 +79,10 @@ superseded result model. Exact admission and owner-derivation tests cover the
 boundary behavior. Its model, clause, operation, unit and dimension nodes SHALL
 retain the checked structural `{package, path, ordinal}` identity, and its
 claim SHALL retain the clause's exact occurrence role and ordinal. A node
-spelling SHALL be canonical QSL node-wire text under owner byte bounds; a
+spelling SHALL be canonical FSL node-wire text under owner byte bounds; a
 malformed component or noncanonical spelling SHALL refuse before authority is
-issued. This structural value does not prove that a node exists in a QSL
-package; QSL compares it with the checked package selection.
+issued. This structural value does not prove that a node exists in a FSL
+package; FSL compares it with the checked package selection.
 
 ## Acceptance Criteria
 
@@ -104,9 +104,9 @@ package; QSL compares it with the checked package selection.
   strict progress/closure boundary artifacts and the no-evaluator boundary.
 - [FR-005](FR-005-adopt-authority-qualified-runtime-references.md) owns exact
   finite edge values, replay, correlation and pre-work population ceilings.
-- QSpec FR-262 owns explicit relationship facts and QSpec FR-289 owns the exact
+- FSpec FR-262 owns explicit relationship facts and FSpec FR-289 owns the exact
   inclusive-to-half-open boundary mapping.
 
 ## Status
 
-Implemented and independently reviewed for `agent-ix/quire-observation#13`.
+Implemented and independently reviewed for `agent-ix/filament-observation#13`.

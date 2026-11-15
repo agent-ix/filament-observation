@@ -19,7 +19,7 @@ use super::{BoundaryRef, OpenClosed};
 use crate::Identity;
 
 /// Exact canonical wire contract emitted for closed-population query evaluations.
-pub const CONTRACT: &str = "quire.observation.closed-population-query/v1";
+pub const CONTRACT: &str = "filament.observation.closed-population-query/v1";
 
 /// Immutable owner maxima for one population query.
 pub const OWNER_MAX: Limits = Limits {

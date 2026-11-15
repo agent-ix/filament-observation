@@ -3,17 +3,17 @@ id: FR-011
 title: "Evaluate exact queries over closed related-workflow populations"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-observation/US-001
+  - target: ix://agent-ix/filament-observation/US-001
     type: implements
-  - target: ix://agent-ix/quire-observation/FR-008
+  - target: ix://agent-ix/filament-observation/FR-008
     type: depends_on
-  - target: ix://agent-ix/quire-observation/FR-009
+  - target: ix://agent-ix/filament-observation/FR-009
     type: depends_on
-  - target: ix://agent-ix/quire-specification/FR-041
+  - target: ix://agent-ix/filament-specification/FR-041
     type: references
-  - target: ix://agent-ix/quire-specification/FR-153
+  - target: ix://agent-ix/filament-specification/FR-153
     type: references
-  - target: ix://agent-ix/quire-specification/FR-180
+  - target: ix://agent-ix/filament-specification/FR-180
     type: references
 ---
 # FR-011: Evaluate exact queries over closed related-workflow populations
@@ -40,7 +40,7 @@ request.
 
 ## Outputs
 
-- A canonical `quire.observation.closed-population-query/v1` ordered
+- A canonical `filament.observation.closed-population-query/v1` ordered
   member/accounting record and exact Boolean, count, or sum value when the
   population and every required fact are complete.
 - A typed incomplete or refused result with no partial definitive aggregate.
@@ -82,7 +82,7 @@ request.
 | FR-011-AC-4 | Replayed receipts do not create effects, while distinct admitted effects and occurrence-preserving duplicate values remain distinguishable. | unit-testing (TC-011) |
 | FR-011-AC-5 | Open, unknown, stale, ambiguous, contradicted, incomplete, foreign, or over-bound authority produces no partial definitive aggregate. | property-based-testing (TC-011) |
 | FR-011-AC-6 | Exact sum rejects wrong representation/unit, overflow, and an invalid intermediate prefix without reordering operands. | property-based-testing (TC-011) |
-| FR-011-AC-7 | The public query contract constant and every emitted canonical query evaluation name exactly `quire.observation.closed-population-query/v1`; the label is immutable within v1. | unit-testing (TC-011) |
+| FR-011-AC-7 | The public query contract constant and every emitted canonical query evaluation name exactly `filament.observation.closed-population-query/v1`; the label is immutable within v1. | unit-testing (TC-011) |
 
 ## Error Conditions
 
@@ -98,5 +98,5 @@ a typed refusal. Neither outcome contains a definitive aggregate.
   independent population, progress, closure, and completeness authority.
 - [FR-009](./FR-009-publish-revisioned-authority-bundles.md) supplies the exact
   revisioned I07 input.
-- QSpec FR-041 owns common bounded query semantics; FR-153 owns closed-environment
+- FSpec FR-041 owns common bounded query semantics; FR-153 owns closed-environment
   selection; FR-180 owns the reference-workflow corpus.

@@ -3,7 +3,7 @@ id: TC-003
 title: "Expose complete validated owner views"
 type: TC
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-003"
+  - target: "ix://agent-ix/filament-observation/FR-003"
     type: "verifies"
 ---
 # TC-003: Expose complete validated owner views

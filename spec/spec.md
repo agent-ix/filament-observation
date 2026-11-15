@@ -1,11 +1,11 @@
 ---
 type: master-requirements
-name: quire-observation
+name: filament-observation
 org: agent-ix
 component_type: rust-library
 implementation_language: rust
 tags:
-  - quire
+  - filament
   - observation
   - OB01
   - OB02
@@ -22,7 +22,7 @@ security_critical: false
 ## Purpose
 
 This specification defines the private Rust observation boundary required for
-the complete Quire V1 runtime. It qualifies incoming records, represents exact
+the complete Filament V1 runtime. It qualifies incoming records, represents exact
 partial and clock-uncertain facts, derives revisioned observation authority, and
 evaluates only the finite population queries owned by the observation boundary.
 Temporal and protocol meaning remain with their domain evaluators.
@@ -46,7 +46,7 @@ Temporal and protocol meaning remain with their domain evaluators.
 ### Out of Scope
 
 - Native source parsing and semantic package compilation, which belong to
-  `quire-spec-language`.
+  `filament-spec-language`.
 - FCD decoding, OTLP/other transport adapters, production monitoring, and
   business-action execution.
 - Parsing or interpreting producer and closure definition bytes. Their
@@ -63,7 +63,7 @@ Temporal and protocol meaning remain with their domain evaluators.
 
 ### System Description
 
-`quire-observation` is a transport-independent Rust library. It accepts
+`filament-observation` is a transport-independent Rust library. It accepts
 explicitly selected semantic records and scopes, rejects unsafe substitutions,
 and emits qualified inputs or explicit non-success outcomes for downstream
 assessment.
@@ -94,8 +94,8 @@ capture, progress, closure, completeness and result-availability facts. It does
 not own temporal or protocol truth, settlement, claim, conformance, or Boolean
 result vocabularies. FR-002 owns observation-authority derivation only; FR-003
 exposes those artifacts through strict owner readers and never emits a canonical
-protocol result. `quire-protocol` and `tl-mltl` own their results, and
-`quire-contract-ir` joins only validated owner views.
+protocol result. `filament-protocol` and `tl-mltl` own their results, and
+`filament-contract-ir` joins only validated owner views.
 
 This library implements the observation-authority boundary and nothing above
 it. It supplies versioned inputs and repair lineage to its consumers, which
@@ -105,6 +105,6 @@ and this library does not become that composition.
 ## References
 
 - `agent-ix/quire-research#44`, `#45`, and `#46` under OBSERVATION #37.
-- The accepted shared `quire-specification` requirements this library
+- The accepted shared `filament-specification` requirements this library
   implements, at the revision its own review recorded.
-- Producer interface 1.2.0 selected by the shared Quire specification.
+- Producer interface 1.2.0 selected by the shared Filament specification.

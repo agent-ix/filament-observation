@@ -17,28 +17,28 @@ use super::{
 use crate::{Digest, Identity};
 
 /// Immutable bundle-contract label.
-pub const CONTRACT: &str = "quire.observation-authority/v1";
+pub const CONTRACT: &str = "filament.observation-authority/v1";
 /// Pinned JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-authority-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "636a695900643067596ececb5177a8b7d446e977727a6eee7aeff494e18e336b";
+pub const SCHEMA_SHA256: &str = "3c9767708eff0783b4f2a38805d9de693deb5e01cceef1b0edd8ba02d6dfa599";
 /// Immutable structurally empty bundle-contract label.
-pub const V2_CONTRACT: &str = "quire.observation-authority/v2";
+pub const V2_CONTRACT: &str = "filament.observation-authority/v2";
 /// Pinned JSON Schema bytes for [`V2_CONTRACT`].
 pub const V2_SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-authority-v2.schema.json");
 /// Lowercase SHA-256 digest of [`V2_SCHEMA_BYTES`].
 pub const V2_SCHEMA_SHA256: &str =
-    "728cb5d0954440a094a16d05020d4db53be693579cae170d0bb2ce76b5226f31";
+    "f45490543667681d606bfea8d22b0efd6520667a3fa7deed5ee93b5cdb70a012";
 /// Immutable lineage-view contract label.
-pub const LINEAGE_CONTRACT: &str = "quire.observation-authority-lineage/v1";
+pub const LINEAGE_CONTRACT: &str = "filament.observation-authority-lineage/v1";
 /// Pinned JSON Schema bytes for [`LINEAGE_CONTRACT`].
 pub const LINEAGE_SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-authority-lineage-v1.schema.json");
 /// Lowercase SHA-256 digest of [`LINEAGE_SCHEMA_BYTES`].
 pub const LINEAGE_SCHEMA_SHA256: &str =
-    "d58c70516e53bde40ab2d276df143fffb05740348b98d09a71e89857a82a22ef";
+    "31d376fae6f16cb1f03cdf5a42e5ad5002af0670e5225af7a29c2c50f620d721";
 
 /// Closed semantic role vocabulary for a complete I07 authority bundle.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]

@@ -3,7 +3,7 @@ id: TC-011
 title: "Evaluate closed related-workflow populations"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-observation/FR-011
+  - target: ix://agent-ix/filament-observation/FR-011
     type: verifies
 ---
 # TC-011: Evaluate closed related-workflow populations

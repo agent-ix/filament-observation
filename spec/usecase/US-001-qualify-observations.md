@@ -8,7 +8,7 @@ relationships: []
 
 ## Story
 
-**As a** native Quire assessment consumer
+**As a** Filament assessment consumer
 **I want** observations to arrive with their selected identities, scope, and
 availability status, including uncertainty and revision lineage
 **So that** I can assess and repair an obligation without treating missing,

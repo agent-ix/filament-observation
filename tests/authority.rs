@@ -5,19 +5,19 @@
 
 mod support;
 
-use ix_trace_rs::trace;
-use proptest::prelude::*;
-use quire_exact::{NodeKey, Origin, PathSegment, Role};
-use quire_observation::authority::{
+use filament_exact::{NodeKey, Origin, PathSegment, Role};
+use filament_observation::authority::{
     self, AuthoritySelection, Context, History, IncrementalHistory, Limits, OpenClosed,
     SubjectSelection, TemporalBoundary,
 };
-use quire_observation::{
+use filament_observation::{
     admit, AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest,
     Identity, Member, ObservationBinding, PackageSelection, QualifiedObservation, Relationship,
     RelationshipIdentity, ResourceLimits, ScopeKind, ScopeSelection, ValueState, Visibility,
     NATIVE_LINKED_PACKAGE_FORMAT, PRODUCER_INTERFACE_VERSION,
 };
+use ix_trace_rs::trace;
+use proptest::prelude::*;
 use sha2::{Digest as _, Sha256};
 use support::{
     order, producer, shipment, ORDER_KIND, ORDER_SHIPMENT, ORDER_SUCCESSOR, SHIPMENT_KIND,
@@ -1071,7 +1071,7 @@ fn tc004_all_eleven_owner_contracts_derive_canonical_documents() {
     let documents = derive_all(History::batch(&qualified), &owner, &subject);
     assert_eq!(
         qualified.scope().membership_rule_identity.as_str(),
-        "sha256-jcs:51daded8bd0ade3b3ce5addc3e5e58318cf661dad0e3f80b8a58be1e33eb5ccb"
+        "sha256-jcs:29539bc78c808cadc379b783595fd1968698376c1f610ef289c3aa7f6378b1bd"
     );
     let contracts = [
         documents.activation.contract(),
@@ -1089,7 +1089,7 @@ fn tc004_all_eleven_owner_contracts_derive_canonical_documents() {
     assert_eq!(contracts.len(), 11);
     assert!(contracts
         .iter()
-        .all(|contract| contract.starts_with("quire.observation.")));
+        .all(|contract| contract.starts_with("filament.observation.")));
     for document in [
         &documents.activation,
         &documents.observation,
@@ -1811,7 +1811,7 @@ fn tc004_strict_reader_rejects_mutations_trailing_data_and_one_over_bytes() {
     trailing.push(b' ');
     assert!(authority::population::read(&trailing, context, Limits::owner_max()).is_err());
 
-    let mut duplicate = b"{\"contract\":\"quire.observation.population/v1\",".to_vec();
+    let mut duplicate = b"{\"contract\":\"filament.observation.population/v1\",".to_vec();
     duplicate.extend_from_slice(&document.bytes()[1..]);
     assert!(authority::population::read(&duplicate, context, Limits::owner_max()).is_err());
 
@@ -2414,21 +2414,21 @@ fn tc005_qualified_owner_contracts_version_without_mutating_v1() {
         sha256(include_bytes!(
             "../schemas/observation-record-v1.schema.json"
         )),
-        "2922c6ad6bbca53f0800b7bd5159781632aa6ebd1e696567ae5639ec18dea3a3"
+        "640adf2b8fb7e8cb082ad4690f16aa89f7d9da0e81f24072530f1cd3b43ed6ca"
     );
     assert_eq!(
         sha256(include_bytes!(
             "../schemas/observation-population-v1.schema.json"
         )),
-        "493b4c10701356007d055d351171ee1897de2b7226da03161fa86a9e52e524c2"
+        "f3ace1c22ffe5c40730a3a919d4b1ed5786049fda6c0a9843c8a671c5437b551"
     );
     assert_eq!(
         authority::observation::CONTRACT,
-        "quire.observation.record/v2"
+        "filament.observation.record/v2"
     );
     assert_eq!(
         authority::population::CONTRACT,
-        "quire.observation.population/v2"
+        "filament.observation.population/v2"
     );
 }
 
@@ -2471,7 +2471,7 @@ fn tc009_initial_bundle_is_canonical_complete_and_strictly_read() {
         .expect("repeat initial publication");
     assert_eq!(
         format!("{:x}", Sha256::digest(first.document().bytes())),
-        "67b5c69811321a6b6523dc50ad264b1975112ef0c840fc7991b95327b8dc3693",
+        "9fc11a9385a16edb0ca8d5c52a4ba7e82523521a59602cd139a9c903e3ac1cfc",
         "the existing v1 canonical fixture bytes are immutable",
     );
     assert_eq!(first.document().bytes(), second.document().bytes());
@@ -4663,7 +4663,7 @@ fn tc011_ambient_nonmembers_and_missing_relationships_never_participate() {
     assert!(matches!(
         ambient_nonmember,
         AdmissionOutcome::Incomplete { reasons }
-            if reasons == [quire_observation::IncompleteReason::MissingMembership]
+            if reasons == [filament_observation::IncompleteReason::MissingMembership]
     ));
 
     let missing_relationship = query_missing_relationship_lineage();
@@ -5204,13 +5204,13 @@ fn tc011_each_query_limit_admits_exact_and_refuses_one_over() {
     assert_eq!(
         usage,
         authority::query::Usage {
-            input_bytes: 47_231,
+            input_bytes: 47_309,
             members: 2,
             occurrences: 2,
             arithmetic_steps: 2,
             work: 53,
             state_bytes: 1_160,
-            output_bytes: 2_884,
+            output_bytes: 2_887,
         }
     );
     assert_eq!(usage.members, 2);
@@ -6447,8 +6447,8 @@ fn tc010_each_coordinator_limit_admits_exact_and_refuses_one_over_on_both_paths(
             possible_orders: 12,
             evaluator_calls: 3,
             work: 158,
-            state_bytes: 7_197,
-            output_bytes: 2_252,
+            state_bytes: 7_212,
+            output_bytes: 2_255,
         }
     );
     let exact = authority::coordination::Limits {
@@ -6546,8 +6546,8 @@ fn tc010_each_coordinator_limit_admits_exact_and_refuses_one_over_on_both_paths(
             possible_orders: 21,
             evaluator_calls: 5,
             work: 165,
-            state_bytes: 8_045,
-            output_bytes: 2_252,
+            state_bytes: 8_060,
+            output_bytes: 2_255,
         }
     );
     let exact = authority::coordination::Limits {
@@ -6873,7 +6873,7 @@ fn tc009_bundle_and_lineage_strict_readers_reject_wire_mutations() {
 
     let mut contract: Value =
         serde_json::from_slice(publication.document().bytes()).expect("canonical bundle JSON");
-    contract["contract"] = Value::String("quire.observation-authority/v0".to_owned());
+    contract["contract"] = Value::String("filament.observation-authority/v0".to_owned());
     let error = authority::bundle::read(
         &serde_json::to_vec(&contract).expect("encode contract mutation"),
         context,
@@ -7230,7 +7230,7 @@ fn tc010_plan_contains_only_explicit_observable_closure_and_retains_other_bytes(
 #[trace("TC-010", "FR-010-AC-7")]
 #[test]
 fn tc010_repair_contract_identity_is_owner_fixed() {
-    const REPAIR_CONTRACT_ORACLE: &str = "quire.observation.repair-plan/v1";
+    const REPAIR_CONTRACT_ORACLE: &str = "filament.observation.repair-plan/v1";
 
     let plan = coordinator_plan();
     let wire: serde_json::Value =
@@ -7242,7 +7242,7 @@ fn tc010_repair_contract_identity_is_owner_fixed() {
 #[trace("TC-011", "FR-011-AC-7")]
 #[test]
 fn tc011_query_contract_identity_is_owner_fixed() {
-    const QUERY_CONTRACT_ORACLE: &str = "quire.observation.closed-population-query/v1";
+    const QUERY_CONTRACT_ORACLE: &str = "filament.observation.closed-population-query/v1";
 
     let lineage = query_lineage(&[("shipment:S1", "40", 5)], &[0], &[0]);
     let selection = query_selection(

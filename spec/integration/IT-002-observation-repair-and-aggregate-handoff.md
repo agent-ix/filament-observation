@@ -3,30 +3,30 @@ id: IT-002
 title: "Qualify revisioned observation repair and aggregate handoff"
 type: IT
 relationships:
-  - target: ix://agent-ix/quire-observation/FR-007
+  - target: ix://agent-ix/filament-observation/FR-007
     type: verifies
-  - target: ix://agent-ix/quire-observation/FR-008
+  - target: ix://agent-ix/filament-observation/FR-008
     type: verifies
-  - target: ix://agent-ix/quire-observation/FR-009
+  - target: ix://agent-ix/filament-observation/FR-009
     type: verifies
-  - target: ix://agent-ix/quire-observation/FR-010
+  - target: ix://agent-ix/filament-observation/FR-010
     type: verifies
-  - target: ix://agent-ix/quire-observation/FR-011
+  - target: ix://agent-ix/filament-observation/FR-011
     type: verifies
-  - target: ix://agent-ix/quire-specification/IT-072
+  - target: ix://agent-ix/filament-specification/IT-072
     type: references
 ---
 # IT-002: Qualify revisioned observation repair and aggregate handoff
 
 ## Objective
 
-Verify that real pinned QObs owner views drive the selected Rust temporal and
+Verify that real pinned FObs owner views drive the selected Rust temporal and
 protocol consumers through initial assessment, revisioned repair, and closed-
 population aggregation without losing uncertainty or lineage.
 
 ## Target Integration
 
-The integration links the `quire-observation` Rust crate to exact pinned
+The integration links the `filament-observation` Rust crate to exact pinned
 consumer revisions across the interfaces this library publishes. It invokes the
 real local Rust APIs and canonical wire readers. No semantic consumer, file I/O,
 or clock behavior is mocked.
@@ -49,7 +49,7 @@ limits.
 
 ## Test Procedure
 
-1. Read the initial QObs bundle through the real I07 reader and run each selected
+1. Read the initial FObs bundle through the real I07 reader and run each selected
    consumer.
    - IT-002-SC-01: every consumer retains the same possibility, clock, population,
      progress, completeness, and authority identities.
@@ -78,17 +78,17 @@ independent completed siblings.
 ## Metadata
 
 - Priority: P0
-- Target Integration: QSpec IT-072 observation repair parity plus the observation
+- Target Integration: FSpec IT-072 observation repair parity plus the observation
   cells of IT-071
 - Automation: Automated local Rust integration test
 
 ## Dependencies
 
-**Upstream**: merged compatible QSL/TL/Protocol consumer revisions and FR-007
-through FR-011. **Downstream**: QObs #26 qualification and the composed
-`quire-integration` C14 campaign.
+**Upstream**: merged compatible FSL/TL/Protocol consumer revisions and FR-007
+through FR-011. **Downstream**: FObs #26 qualification and the composed
+`filament-integration` C14 campaign.
 
 ## Traceability
 
-This test implements the QObs-owned portion of QSpec IT-072 and supplies the I07
+This test implements the FObs-owned portion of FSpec IT-072 and supplies the I07
 evidence required by the complete composed integration lock.

@@ -4,9 +4,9 @@
 //! TC-004: structural node identity encoding is bounded before any canonical
 //! text is retained.
 
+use filament_exact::{NodeKey, PathSegment};
+use filament_observation::authority::{progress::NodeIdentity, ErrorCode, Limits};
 use ix_trace_rs::trace;
-use quire_exact::{NodeKey, PathSegment};
-use quire_observation::authority::{progress::NodeIdentity, ErrorCode, Limits};
 
 /// Each level names the previous level twice, so the canonical text doubles
 /// per level while the key shares its storage and stays small.

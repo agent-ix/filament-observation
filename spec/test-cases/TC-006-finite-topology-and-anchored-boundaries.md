@@ -3,7 +3,7 @@ id: TC-006
 title: "Prove finite topology retention and exact boundary anchoring"
 type: TC
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-006"
+  - target: "ix://agent-ix/filament-observation/FR-006"
     type: "verifies"
 ---
 # TC-006: Prove finite topology retention and exact boundary anchoring

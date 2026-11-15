@@ -3,15 +3,15 @@ id: FR-010
 title: "Repair affected authority regions with replay and incremental parity"
 type: FR
 relationships:
-  - target: ix://agent-ix/quire-observation/US-001
+  - target: ix://agent-ix/filament-observation/US-001
     type: implements
-  - target: ix://agent-ix/quire-observation/FR-009
+  - target: ix://agent-ix/filament-observation/FR-009
     type: depends_on
-  - target: ix://agent-ix/quire-specification/FR-114
+  - target: ix://agent-ix/filament-specification/FR-114
     type: references
-  - target: ix://agent-ix/quire-specification/FR-160
+  - target: ix://agent-ix/filament-specification/FR-160
     type: references
-  - target: ix://agent-ix/quire-specification/FR-324
+  - target: ix://agent-ix/filament-specification/FR-324
     type: references
 ---
 # FR-010: Repair affected authority regions with replay and incremental parity
@@ -33,7 +33,7 @@ or incremental recomputation for only that region.
 
 ## Outputs
 
-- A deterministic `quire.observation.repair-plan/v1` repair plan containing
+- A deterministic `filament.observation.repair-plan/v1` repair plan containing
   changed facts, affected result identities, retained unaffected identities,
   and canonical recomputation order.
 - Retained prior and replacement result records with their evidence digests and
@@ -83,7 +83,7 @@ or incremental recomputation for only that region.
 | FR-010-AC-4 | A decisive prefix is emitted before end-of-input, while an unresolved prefix remains non-settled until a decisive witness, decisive counterexample, or matching closure exists. | unit-testing (TC-010) |
 | FR-010-AC-5 | Out-of-order arrival and overlapping event-time intervals never become a total semantic order; every admissible order reaches the evaluator. | property-based-testing (TC-010) |
 | FR-010-AC-6 | Cycles, unknown dependency identities, foreign revisions, and one-over work/state bounds return their typed outcomes without a partial repair plan or promoted result. | unit-testing (TC-010) |
-| FR-010-AC-7 | The public repair-plan contract constant and every emitted canonical repair plan name exactly `quire.observation.repair-plan/v1`; the label is immutable within v1. | unit-testing (TC-010) |
+| FR-010-AC-7 | The public repair-plan contract constant and every emitted canonical repair plan name exactly `filament.observation.repair-plan/v1`; the label is immutable within v1. | unit-testing (TC-010) |
 
 ## Error Conditions
 
@@ -96,6 +96,6 @@ No such path emits a partial repair plan or replacement result.
 
 - [FR-009](./FR-009-publish-revisioned-authority-bundles.md) supplies validated
   revision lineage and replacements.
-- QSpec FR-160 and I06 own temporal evaluation and result meaning; this
+- FSpec FR-160 and I06 own temporal evaluation and result meaning; this
   requirement coordinates exact inputs, impact, and lineage without interpreting
   a formula or protocol.

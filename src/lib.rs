@@ -252,7 +252,7 @@ pub struct ScopeSelection {
     pub membership_rule_identity: Identity,
     /// SHA-256 digest of the canonical membership document.
     pub membership_digest: Digest,
-    /// Exact strict-read `quire.observation.explicit-members/v1` bytes.
+    /// Exact strict-read `filament.observation.explicit-members/v1` bytes.
     pub membership_document: Vec<u8>,
     /// Complete, sorted, distinct semantic member identity set selected by the rule.
     pub required_member_identities: Vec<Identity>,

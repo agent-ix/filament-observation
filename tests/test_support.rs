@@ -4,8 +4,8 @@
 //! TC-014: the `test-support` export of the owned static-bundle fixture.
 #![cfg(feature = "test-support")]
 
+use filament_observation::{test_support::FCD_STATIC_BUNDLE_1_2, StaticProducerBundle};
 use ix_trace_rs::trace;
-use quire_observation::{test_support::FCD_STATIC_BUNDLE_1_2, StaticProducerBundle};
 
 #[trace("TC-014", "FR-012-AC-1")]
 #[test]

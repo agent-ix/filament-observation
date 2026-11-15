@@ -3,7 +3,7 @@ id: TC-013
 title: "Audit bounded iteration and allocation"
 type: TC
 relationships:
-  - target: ix://agent-ix/quire-observation/NFR-003
+  - target: ix://agent-ix/filament-observation/NFR-003
     type: verifies
 ---
 # TC-013: Audit bounded iteration and allocation

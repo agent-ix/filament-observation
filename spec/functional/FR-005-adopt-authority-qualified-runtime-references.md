@@ -3,11 +3,11 @@ id: FR-005
 title: "Adopt authority-qualified runtime subjects and relationships"
 type: FR
 relationships:
-  - target: "ix://agent-ix/quire-observation/FR-001"
+  - target: "ix://agent-ix/filament-observation/FR-001"
     type: "depends_on"
-  - target: "ix://agent-ix/quire-specification/FR-262"
+  - target: "ix://agent-ix/filament-specification/FR-262"
     type: "depends_on"
-  - target: "ix://agent-ix/quire-specification/FR-287"
+  - target: "ix://agent-ix/filament-specification/FR-287"
     type: "depends_on"
 ---
 # FR-005: Adopt authority-qualified runtime subjects and relationships
@@ -94,11 +94,11 @@ over either caller-declared limit SHALL refuse before retaining partial state.
 
 ## Owner artifact versioning
 
-Because the pinned `quire.observation.record/v1` and
-`quire.observation.population/v1` schemas cannot represent the FR-287 authority
+Because the pinned `filament.observation.record/v1` and
+`filament.observation.population/v1` schemas cannot represent the FR-287 authority
 key and are immutable, the library SHALL preserve their exact schema bytes and
-publish the qualified replacements as `quire.observation.record/v2` and
-`quire.observation.population/v2`. It SHALL NOT change a v1 schema digest in
+publish the qualified replacements as `filament.observation.record/v2` and
+`filament.observation.population/v2`. It SHALL NOT change a v1 schema digest in
 place. Their identity-preimage version labels SHALL also advance to v2 so the
 new member sets cannot alias a v1 preimage. The other seven owner contracts
 remain at v1.
@@ -126,11 +126,11 @@ remain at v1.
   redesign; see PLAT ticket follow-up recommending a separate evaluation of
   whether this library's admission model should move toward Semantic IR
   documents (`agent-ix/filament-core-data#144`).
-- `agent-ix/quire-specification` FR-287 defines the runtime subject key and
+- `agent-ix/filament-specification` FR-287 defines the runtime subject key and
   FR-262 defines relationship identity, endpoint and correlation semantics.
 - [FR-001](FR-001-qualify-observation-admission.md) owns the encompassing
   observation-admission outcome and resource limits.
 
 ## Status
 
-Implemented and independently reviewed for `agent-ix/quire-observation#18`.
+Implemented and independently reviewed for `agent-ix/filament-observation#18`.

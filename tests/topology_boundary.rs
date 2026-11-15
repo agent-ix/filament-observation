@@ -7,17 +7,17 @@ mod support;
 
 use std::collections::BTreeSet;
 
-use ix_trace_rs::trace;
-use quire_observation::authority::{
+use filament_observation::authority::{
     self, AuthoritySelection, Context, History, Limits, OpenClosed, SubjectSelection,
     TemporalBoundary,
 };
-use quire_observation::{
+use filament_observation::{
     admit, AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest,
     Identity, Member, ObservationBinding, PackageSelection, QualifiedObservation, Relationship,
     RelationshipIdentity, ResourceKind, ResourceLimits, ScopeKind, ScopeSelection, ValueState,
     Visibility, NATIVE_LINKED_PACKAGE_FORMAT,
 };
+use ix_trace_rs::trace;
 use support::{order, producer, ORDER_SUCCESSOR};
 
 fn id(value: &str) -> Identity {
@@ -283,7 +283,7 @@ fn tc006_retains_loops_cycles_and_disconnected_components_without_inference() {
     assert!(matches!(
         admit(replay_over),
         AdmissionOutcome::Refused {
-            cause: quire_observation::RefusalCause::ResourceLimit {
+            cause: filament_observation::RefusalCause::ResourceLimit {
                 limit: ResourceKind::Relationships
             }
         }
@@ -336,7 +336,7 @@ fn tc006_timestamp_boundary_uses_exact_scope_clock_and_half_open_carrier() {
     assert!(matches!(
         admit(at_carrier_end),
         AdmissionOutcome::Refused {
-            cause: quire_observation::RefusalCause::ClockMismatch { .. }
+            cause: filament_observation::RefusalCause::ClockMismatch { .. }
         }
     ));
 
@@ -458,7 +458,7 @@ fn tc006_timestamp_boundary_uses_exact_scope_clock_and_half_open_carrier() {
 
 #[trace("TC-006", "FR-006-AC-5", "FR-006-AC-7", "FR-006-AC-8")]
 #[test]
-fn tc006_discrete_boundaries_require_checked_successor_and_admit_points() {
+fn tc006_discrete_boundaries_refilament_checked_successor_and_admit_points() {
     let event = qualified(request_for(
         ScopeKind::Snapshot {
             snapshot_identity: id("snapshot:event-point"),

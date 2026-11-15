@@ -3,11 +3,11 @@ id: FR-002
 title: "Derive observation authority consistently"
 type: FR
 relationships:
-  - target: "ix://agent-ix/quire-observation/US-001"
+  - target: "ix://agent-ix/filament-observation/US-001"
     type: "implements"
-  - target: "ix://agent-ix/quire-observation/FR-001"
+  - target: "ix://agent-ix/filament-observation/FR-001"
     type: "depends_on"
-  - target: "ix://agent-ix/quire-observation/FR-004"
+  - target: "ix://agent-ix/filament-observation/FR-004"
     type: "depends_on"
 ---
 # FR-002: Derive observation authority consistently
@@ -15,7 +15,7 @@ relationships:
 ## Description
 
 When a caller supplies the same qualified history and complete owner selections,
-the `quire-observation` library SHALL derive byte-identical observation-authority
+the `filament-observation` library SHALL derive byte-identical observation-authority
 artifacts through batch and checked incremental intake.
 
 ## Inputs
