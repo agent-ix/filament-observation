@@ -21,7 +21,7 @@ resolver = "2"
 test-support = []
 
 [dependencies]
-fsl-foundation = { git = "https://github.com/agent-ix/filament-spec-language", branch = "fsl-rename" }
+fsl-foundation = { git = "https://github.com/agent-ix/filament-spec-language", branch = "main" }
 quire-canonical = { version = "=0.3.0", git = "https://github.com/agent-ix/quire-canonical", branch = "main", features = ["serde_json"] }
 filament-exact = { git = "https://github.com/agent-ix/filament-exact", branch = "main" }
 serde = { version = "=1.0.228", features = ["derive"] }
