@@ -60,6 +60,114 @@
       }
     },
     {
+      "componentIdentity": "ix://agent-ix/commerce/component/payment-attempts",
+      "componentRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "digest": {
+        "algorithm": "sha256",
+        "domain": "filament-canonical-json-1",
+        "value": "sha256:0ee5aa11410ab879bd07aab1de7a073271e03b30270e64f4cf6361d6d8dc17a7",
+        "version": "1"
+      },
+      "inventoryMembership": {
+        "completeness": "complete",
+        "inventoryIdentity": "ix://agent-ix/commerce/inventory/orders-2026-09-11"
+      },
+      "owningTypeIdentity": "ix://agent-ix/commerce/type/PaymentAttempt",
+      "repositoryIdentity": "ix://agent-ix/commerce/repository/payment-attempts",
+      "repositoryRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "roleIdentities": [
+        "ix://agent-ix/commerce/role/payment-attempts"
+      ],
+      "sourceLocus": {
+        "formal": {
+          "document": "ix://agent-ix/commerce/formal/payment-attempt-declarations",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          }
+        },
+        "source": {
+          "authority": "ix://agent-ix/commerce/model-authority/primary",
+          "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "identity": "ix://agent-ix/commerce/source/payment-attempt-declarations",
+          "kind": "source",
+          "refVersion": "3",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          },
+          "wire": {
+            "identity": "filament-core-data/producer-bundle",
+            "version": "1.2.0"
+          }
+        },
+        "span": {
+          "end": 160,
+          "start": 32
+        }
+      }
+    },
+    {
+      "componentIdentity": "ix://agent-ix/commerce/component/refunds",
+      "componentRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "digest": {
+        "algorithm": "sha256",
+        "domain": "filament-canonical-json-1",
+        "value": "sha256:abb96b7853477b50a6d2358e8855e3a1e4fda576409c387b20c27fc6f9109ab6",
+        "version": "1"
+      },
+      "inventoryMembership": {
+        "completeness": "complete",
+        "inventoryIdentity": "ix://agent-ix/commerce/inventory/orders-2026-09-11"
+      },
+      "owningTypeIdentity": "ix://agent-ix/commerce/type/Refund",
+      "repositoryIdentity": "ix://agent-ix/commerce/repository/refunds",
+      "repositoryRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "roleIdentities": [
+        "ix://agent-ix/commerce/role/refunds"
+      ],
+      "sourceLocus": {
+        "formal": {
+          "document": "ix://agent-ix/commerce/formal/refund-declarations",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          }
+        },
+        "source": {
+          "authority": "ix://agent-ix/commerce/model-authority/primary",
+          "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+          "identity": "ix://agent-ix/commerce/source/refund-declarations",
+          "kind": "source",
+          "refVersion": "3",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          },
+          "wire": {
+            "identity": "filament-core-data/producer-bundle",
+            "version": "1.2.0"
+          }
+        },
+        "span": {
+          "end": 160,
+          "start": 32
+        }
+      }
+    },
+    {
       "componentIdentity": "ix://agent-ix/commerce/component/shipments",
       "componentRevision": {
         "namespace": "filament-core-data/producer-object-revision-1",
@@ -205,6 +313,80 @@
           "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
         },
         {
+          "exportIdentity": "ix://agent-ix/commerce/component/payment-attempts",
+          "exportPath": [
+            "payment-attempts",
+            "component"
+          ],
+          "kind": "component",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/payment-attempt-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "identity": "ix://agent-ix/commerce/source/payment-attempt-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 160,
+              "start": 32
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
+          "exportIdentity": "ix://agent-ix/commerce/component/refunds",
+          "exportPath": [
+            "refunds",
+            "component"
+          ],
+          "kind": "component",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/refund-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+              "identity": "ix://agent-ix/commerce/source/refund-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 160,
+              "start": 32
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
           "exportIdentity": "ix://agent-ix/commerce/component/shipments",
           "exportPath": [
             "shipments",
@@ -274,6 +456,162 @@
             "span": {
               "end": 240,
               "start": 192
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
+          "exportIdentity": "ix://agent-ix/commerce/endpoint/Order-paymentAttempt-source",
+          "exportPath": [
+            "orders",
+            "Order",
+            "paymentAttempt",
+            "source"
+          ],
+          "kind": "endpoint",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/order-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "identity": "ix://agent-ix/commerce/source/order-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 560,
+              "start": 480
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
+          "exportIdentity": "ix://agent-ix/commerce/endpoint/Order-paymentAttempt-target",
+          "exportPath": [
+            "payment-attempts",
+            "PaymentAttempt",
+            "paymentAttempt",
+            "target"
+          ],
+          "kind": "endpoint",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/payment-attempt-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "identity": "ix://agent-ix/commerce/source/payment-attempt-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 240,
+              "start": 160
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
+          "exportIdentity": "ix://agent-ix/commerce/endpoint/Order-refund-source",
+          "exportPath": [
+            "orders",
+            "Order",
+            "refund",
+            "source"
+          ],
+          "kind": "endpoint",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/order-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "identity": "ix://agent-ix/commerce/source/order-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 640,
+              "start": 560
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
+          "exportIdentity": "ix://agent-ix/commerce/endpoint/Order-refund-target",
+          "exportPath": [
+            "refunds",
+            "Refund",
+            "refund",
+            "target"
+          ],
+          "kind": "endpoint",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/refund-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+              "identity": "ix://agent-ix/commerce/source/refund-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 240,
+              "start": 160
             }
           },
           "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
@@ -435,6 +773,82 @@
           "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
         },
         {
+          "exportIdentity": "ix://agent-ix/commerce/relationship/Order-paymentAttempt",
+          "exportPath": [
+            "orders",
+            "Order",
+            "paymentAttempt"
+          ],
+          "kind": "relationship",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/order-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "identity": "ix://agent-ix/commerce/source/order-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 560,
+              "start": 480
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
+          "exportIdentity": "ix://agent-ix/commerce/relationship/Order-refund",
+          "exportPath": [
+            "orders",
+            "Order",
+            "refund"
+          ],
+          "kind": "relationship",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/order-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+              "identity": "ix://agent-ix/commerce/source/order-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 640,
+              "start": 560
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
           "exportIdentity": "ix://agent-ix/commerce/relationship/Order-shipment",
           "exportPath": [
             "orders",
@@ -505,6 +919,80 @@
             "span": {
               "end": 192,
               "start": 64
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
+          "exportIdentity": "ix://agent-ix/commerce/type/PaymentAttempt",
+          "exportPath": [
+            "payment-attempts",
+            "PaymentAttempt"
+          ],
+          "kind": "record",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/payment-attempt-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+              "identity": "ix://agent-ix/commerce/source/payment-attempt-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 160,
+              "start": 32
+            }
+          },
+          "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
+        },
+        {
+          "exportIdentity": "ix://agent-ix/commerce/type/Refund",
+          "exportPath": [
+            "refunds",
+            "Refund"
+          ],
+          "kind": "record",
+          "locus": {
+            "formal": {
+              "document": "ix://agent-ix/commerce/formal/refund-declarations",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              }
+            },
+            "source": {
+              "authority": "ix://agent-ix/commerce/model-authority/primary",
+              "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+              "identity": "ix://agent-ix/commerce/source/refund-declarations",
+              "kind": "source",
+              "refVersion": "3",
+              "revision": {
+                "namespace": "filament-core-data/producer-object-revision-1",
+                "value": "2026-09-11-1"
+              },
+              "wire": {
+                "identity": "filament-core-data/producer-bundle",
+                "version": "1.2.0"
+              }
+            },
+            "span": {
+              "end": 160,
+              "start": 32
             }
           },
           "producerObjectIdentity": "ix://agent-ix/commerce/model/order-1-2"
@@ -702,7 +1190,7 @@
   "digest": {
     "algorithm": "sha256",
     "domain": "filament-canonical-json-1",
-    "value": "sha256:f5d75b678d3dc81b3b50661aa658e59b98dc1b516c0355ae8fbe3bd8b9ebe799",
+    "value": "sha256:18ac55664360042344dfd2edcf08981b3059dbac6bb0ca337cfbca47fc98774c",
     "version": "1"
   },
   "endpoints": [
@@ -758,6 +1246,222 @@
         }
       },
       "typeIdentity": "ix://agent-ix/commerce/type/Order"
+    },
+    {
+      "componentIdentity": "ix://agent-ix/commerce/component/orders",
+      "digest": {
+        "algorithm": "sha256",
+        "domain": "filament-canonical-json-1",
+        "value": "sha256:50e134a0207e320a82d83fb2b9ce5bd0fd294c15710e24c0f998ba673994f3db",
+        "version": "1"
+      },
+      "endpointIdentity": "ix://agent-ix/commerce/endpoint/Order-paymentAttempt-source",
+      "endpointRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "inventoryMembership": {
+        "completeness": "complete",
+        "inventoryIdentity": "ix://agent-ix/commerce/inventory/orders-2026-09-11"
+      },
+      "multiplicity": {
+        "lower": 0,
+        "ordered": false,
+        "unique": true,
+        "upper": 1
+      },
+      "role": "order",
+      "sourceLocus": {
+        "formal": {
+          "document": "ix://agent-ix/commerce/formal/order-declarations",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          }
+        },
+        "source": {
+          "authority": "ix://agent-ix/commerce/model-authority/primary",
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "identity": "ix://agent-ix/commerce/source/order-declarations",
+          "kind": "source",
+          "refVersion": "3",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          },
+          "wire": {
+            "identity": "filament-core-data/producer-bundle",
+            "version": "1.2.0"
+          }
+        },
+        "span": {
+          "end": 560,
+          "start": 480
+        }
+      },
+      "typeIdentity": "ix://agent-ix/commerce/type/Order"
+    },
+    {
+      "componentIdentity": "ix://agent-ix/commerce/component/payment-attempts",
+      "digest": {
+        "algorithm": "sha256",
+        "domain": "filament-canonical-json-1",
+        "value": "sha256:fb7a0660a5f0a23a8942de1392010fb14da0eb5b48598eb06b4c86a83e3b3019",
+        "version": "1"
+      },
+      "endpointIdentity": "ix://agent-ix/commerce/endpoint/Order-paymentAttempt-target",
+      "endpointRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "inventoryMembership": {
+        "completeness": "complete",
+        "inventoryIdentity": "ix://agent-ix/commerce/inventory/orders-2026-09-11"
+      },
+      "multiplicity": {
+        "lower": 1,
+        "ordered": false,
+        "unique": true,
+        "upper": 1
+      },
+      "role": "paymentAttempt",
+      "sourceLocus": {
+        "formal": {
+          "document": "ix://agent-ix/commerce/formal/payment-attempt-declarations",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          }
+        },
+        "source": {
+          "authority": "ix://agent-ix/commerce/model-authority/primary",
+          "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "identity": "ix://agent-ix/commerce/source/payment-attempt-declarations",
+          "kind": "source",
+          "refVersion": "3",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          },
+          "wire": {
+            "identity": "filament-core-data/producer-bundle",
+            "version": "1.2.0"
+          }
+        },
+        "span": {
+          "end": 240,
+          "start": 160
+        }
+      },
+      "typeIdentity": "ix://agent-ix/commerce/type/PaymentAttempt"
+    },
+    {
+      "componentIdentity": "ix://agent-ix/commerce/component/orders",
+      "digest": {
+        "algorithm": "sha256",
+        "domain": "filament-canonical-json-1",
+        "value": "sha256:580fa8d95474545c391bb631219945a5552a5c49253234646d957439bab1e23e",
+        "version": "1"
+      },
+      "endpointIdentity": "ix://agent-ix/commerce/endpoint/Order-refund-source",
+      "endpointRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "inventoryMembership": {
+        "completeness": "complete",
+        "inventoryIdentity": "ix://agent-ix/commerce/inventory/orders-2026-09-11"
+      },
+      "multiplicity": {
+        "lower": 0,
+        "ordered": false,
+        "unique": true,
+        "upper": 1
+      },
+      "role": "order",
+      "sourceLocus": {
+        "formal": {
+          "document": "ix://agent-ix/commerce/formal/order-declarations",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          }
+        },
+        "source": {
+          "authority": "ix://agent-ix/commerce/model-authority/primary",
+          "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
+          "identity": "ix://agent-ix/commerce/source/order-declarations",
+          "kind": "source",
+          "refVersion": "3",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          },
+          "wire": {
+            "identity": "filament-core-data/producer-bundle",
+            "version": "1.2.0"
+          }
+        },
+        "span": {
+          "end": 640,
+          "start": 560
+        }
+      },
+      "typeIdentity": "ix://agent-ix/commerce/type/Order"
+    },
+    {
+      "componentIdentity": "ix://agent-ix/commerce/component/refunds",
+      "digest": {
+        "algorithm": "sha256",
+        "domain": "filament-canonical-json-1",
+        "value": "sha256:b8231ba65f3f863485df196f8334e82d5cb55870a19422438cc25b6e811068e4",
+        "version": "1"
+      },
+      "endpointIdentity": "ix://agent-ix/commerce/endpoint/Order-refund-target",
+      "endpointRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "inventoryMembership": {
+        "completeness": "complete",
+        "inventoryIdentity": "ix://agent-ix/commerce/inventory/orders-2026-09-11"
+      },
+      "multiplicity": {
+        "lower": 1,
+        "ordered": false,
+        "unique": true,
+        "upper": 1
+      },
+      "role": "refund",
+      "sourceLocus": {
+        "formal": {
+          "document": "ix://agent-ix/commerce/formal/refund-declarations",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          }
+        },
+        "source": {
+          "authority": "ix://agent-ix/commerce/model-authority/primary",
+          "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+          "identity": "ix://agent-ix/commerce/source/refund-declarations",
+          "kind": "source",
+          "refVersion": "3",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          },
+          "wire": {
+            "identity": "filament-core-data/producer-bundle",
+            "version": "1.2.0"
+          }
+        },
+        "span": {
+          "end": 240,
+          "start": 160
+        }
+      },
+      "typeIdentity": "ix://agent-ix/commerce/type/Refund"
     },
     {
       "componentIdentity": "ix://agent-ix/commerce/component/orders",
@@ -980,9 +1684,15 @@
     "completeness": "complete",
     "componentIdentities": [
       "ix://agent-ix/commerce/component/orders",
+      "ix://agent-ix/commerce/component/payment-attempts",
+      "ix://agent-ix/commerce/component/refunds",
       "ix://agent-ix/commerce/component/shipments"
     ],
     "endpointIdentities": [
+      "ix://agent-ix/commerce/endpoint/Order-paymentAttempt-source",
+      "ix://agent-ix/commerce/endpoint/Order-paymentAttempt-target",
+      "ix://agent-ix/commerce/endpoint/Order-refund-source",
+      "ix://agent-ix/commerce/endpoint/Order-refund-target",
       "ix://agent-ix/commerce/endpoint/Order-shipment-source",
       "ix://agent-ix/commerce/endpoint/Order-shipment-target",
       "ix://agent-ix/commerce/endpoint/Order-successor-source",
@@ -991,6 +1701,8 @@
     ],
     "inventoryIdentity": "ix://agent-ix/commerce/inventory/orders-2026-09-11",
     "relationshipIdentities": [
+      "ix://agent-ix/commerce/relationship/Order-paymentAttempt",
+      "ix://agent-ix/commerce/relationship/Order-refund",
       "ix://agent-ix/commerce/relationship/Order-shipment",
       "ix://agent-ix/commerce/relationship/Order-successor"
     ]
@@ -1022,6 +1734,110 @@
     }
   },
   "relationships": [
+    {
+      "digest": {
+        "algorithm": "sha256",
+        "domain": "filament-canonical-json-1",
+        "value": "sha256:64b16ad4165393190054f2179dba97eee32c32580f4c214674673f16d342167c",
+        "version": "1"
+      },
+      "inventoryMembership": {
+        "completeness": "complete",
+        "inventoryIdentity": "ix://agent-ix/commerce/inventory/orders-2026-09-11"
+      },
+      "ownership": {
+        "configurationIdentity": "ix://agent-ix/commerce/config/evaluation-default",
+        "modelIdentity": "ix://agent-ix/commerce/model/order-1-2",
+        "profileIdentity": "ix://agent-ix/quire/profile/order-assessment-1-2"
+      },
+      "relationshipIdentity": "ix://agent-ix/commerce/relationship/Order-paymentAttempt",
+      "relationshipName": "paymentAttempt",
+      "relationshipRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "semantics": {
+        "category": "structural",
+        "composite": true,
+        "direction": "source-to-target",
+        "lifecycle": "order-owned",
+        "ownership": "order"
+      },
+      "source": {
+        "endpointIdentity": "ix://agent-ix/commerce/endpoint/Order-paymentAttempt-source",
+        "multiplicity": {
+          "lower": 0,
+          "ordered": false,
+          "unique": true,
+          "upper": 1
+        },
+        "role": "order",
+        "typeIdentity": "ix://agent-ix/commerce/type/Order"
+      },
+      "target": {
+        "endpointIdentity": "ix://agent-ix/commerce/endpoint/Order-paymentAttempt-target",
+        "multiplicity": {
+          "lower": 1,
+          "ordered": false,
+          "unique": true,
+          "upper": 1
+        },
+        "role": "paymentAttempt",
+        "typeIdentity": "ix://agent-ix/commerce/type/PaymentAttempt"
+      }
+    },
+    {
+      "digest": {
+        "algorithm": "sha256",
+        "domain": "filament-canonical-json-1",
+        "value": "sha256:3c021a07bced41b49447b3bc421de39c7129da730040dcc373853d2a522ee44a",
+        "version": "1"
+      },
+      "inventoryMembership": {
+        "completeness": "complete",
+        "inventoryIdentity": "ix://agent-ix/commerce/inventory/orders-2026-09-11"
+      },
+      "ownership": {
+        "configurationIdentity": "ix://agent-ix/commerce/config/evaluation-default",
+        "modelIdentity": "ix://agent-ix/commerce/model/order-1-2",
+        "profileIdentity": "ix://agent-ix/quire/profile/order-assessment-1-2"
+      },
+      "relationshipIdentity": "ix://agent-ix/commerce/relationship/Order-refund",
+      "relationshipName": "refund",
+      "relationshipRevision": {
+        "namespace": "filament-core-data/producer-object-revision-1",
+        "value": "2026-09-11-1"
+      },
+      "semantics": {
+        "category": "structural",
+        "composite": true,
+        "direction": "source-to-target",
+        "lifecycle": "order-owned",
+        "ownership": "order"
+      },
+      "source": {
+        "endpointIdentity": "ix://agent-ix/commerce/endpoint/Order-refund-source",
+        "multiplicity": {
+          "lower": 0,
+          "ordered": false,
+          "unique": true,
+          "upper": 1
+        },
+        "role": "order",
+        "typeIdentity": "ix://agent-ix/commerce/type/Order"
+      },
+      "target": {
+        "endpointIdentity": "ix://agent-ix/commerce/endpoint/Order-refund-target",
+        "multiplicity": {
+          "lower": 1,
+          "ordered": false,
+          "unique": true,
+          "upper": 1
+        },
+        "role": "refund",
+        "typeIdentity": "ix://agent-ix/commerce/type/Refund"
+      }
+    },
     {
       "digest": {
         "algorithm": "sha256",
@@ -1152,6 +1968,64 @@
           "authority": "ix://agent-ix/commerce/model-authority/primary",
           "digest": "sha256:dddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddd",
           "identity": "ix://agent-ix/commerce/source/order-declarations",
+          "kind": "source",
+          "refVersion": "3",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          },
+          "wire": {
+            "identity": "filament-core-data/producer-bundle",
+            "version": "1.2.0"
+          }
+        }
+      },
+      {
+        "formal": {
+          "document": "ix://agent-ix/commerce/formal/payment-attempt-declarations",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          }
+        },
+        "native": {
+          "identity": "ix://agent-ix/quire/source/payment-attempt-declarations",
+          "revision": "editable-draft-1"
+        },
+        "path": "models/payment-attempts.tsp",
+        "source": {
+          "authority": "ix://agent-ix/commerce/model-authority/primary",
+          "digest": "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+          "identity": "ix://agent-ix/commerce/source/payment-attempt-declarations",
+          "kind": "source",
+          "refVersion": "3",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          },
+          "wire": {
+            "identity": "filament-core-data/producer-bundle",
+            "version": "1.2.0"
+          }
+        }
+      },
+      {
+        "formal": {
+          "document": "ix://agent-ix/commerce/formal/refund-declarations",
+          "revision": {
+            "namespace": "filament-core-data/producer-object-revision-1",
+            "value": "2026-09-11-1"
+          }
+        },
+        "native": {
+          "identity": "ix://agent-ix/quire/source/refund-declarations",
+          "revision": "editable-draft-1"
+        },
+        "path": "models/refunds.tsp",
+        "source": {
+          "authority": "ix://agent-ix/commerce/model-authority/primary",
+          "digest": "sha256:9999999999999999999999999999999999999999999999999999999999999999",
+          "identity": "ix://agent-ix/commerce/source/refund-declarations",
           "kind": "source",
           "refVersion": "3",
           "revision": {

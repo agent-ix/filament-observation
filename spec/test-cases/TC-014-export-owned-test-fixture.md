@@ -14,12 +14,17 @@ Check the `test-support` fixture export for FR-012.
 ## Test Procedure
 
 Build with `--features test-support`; compare `test_support::FCD_STATIC_BUNDLE_1_2`
-with the fixture file and admit it. Inspect `Cargo.toml` for an empty default
+with the fixture file and admit it. List the admitted relationship declarations
+and the components' owning types. Inspect `Cargo.toml` for an empty default
 feature set.
 
 ## Expected Results
 
-The bytes are identical and admitted; no default feature enables the export.
+The bytes are identical and admitted. The bundle declares exactly the
+relationships `Order-paymentAttempt` (Order to PaymentAttempt), `Order-refund`
+(Order to Refund), `Order-shipment` (Order to Shipment) and `Order-successor`
+(Order to Order), and its component set owns the Order, PaymentAttempt, Refund
+and Shipment types. No default feature enables the export.
 
 ## Status
 

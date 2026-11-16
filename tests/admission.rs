@@ -8,7 +8,10 @@ mod support;
 
 use filament_observation::*;
 use ix_trace_rs::trace;
-use support::{order, producer, producer_with_bundle_identity, shipment, ORDER_SHIPMENT};
+use support::{
+    order, producer, producer_with_bundle_identity, shipment, ORDER_PAYMENT_ATTEMPT, ORDER_REFUND,
+    ORDER_SHIPMENT, PAYMENT_ATTEMPT_KIND, REFUND_KIND,
+};
 
 fn id(value: &str) -> Identity {
     Identity::new(value)
@@ -521,6 +524,54 @@ fn tc005_relationship_construction_refuses_unknown_reversed_and_foreign_inputs()
         ),
         Err(ReferenceRefusal::ForeignAuthority)
     );
+}
+
+#[trace("TC-005", "FR-005-AC-4")]
+#[test]
+fn tc005_order_payment_attempt_and_refund_resolve_only_in_declared_order() {
+    let producer = producer();
+    let local_order = order(&producer, "order:O1");
+    let identity = || RelationshipIdentity::new("relationship:one").unwrap();
+
+    for (declaration, target_kind) in [
+        (ORDER_PAYMENT_ATTEMPT, PAYMENT_ATTEMPT_KIND),
+        (ORDER_REFUND, REFUND_KIND),
+    ] {
+        let target = support::subject(&producer, target_kind, "target:T1");
+        let resolved = Relationship::new(
+            &producer,
+            declaration,
+            identity(),
+            local_order.clone(),
+            target.clone(),
+        )
+        .expect("the declared Order relationship resolves");
+        assert_eq!(resolved.declaration_identity(), declaration);
+        assert_eq!(resolved.target(), &target);
+
+        assert_eq!(
+            Relationship::new(
+                &producer,
+                declaration,
+                identity(),
+                target.clone(),
+                local_order.clone(),
+            ),
+            Err(ReferenceRefusal::ReversedEndpoints)
+        );
+        assert_eq!(
+            Relationship::new(
+                &producer,
+                declaration,
+                identity(),
+                local_order.clone(),
+                shipment(&producer, "shipment:S1"),
+            ),
+            Err(ReferenceRefusal::WrongEndpointKind {
+                endpoint: EndpointSide::Target
+            })
+        );
+    }
 }
 
 #[trace("TC-005", "FR-005-AC-5")]

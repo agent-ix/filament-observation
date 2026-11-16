@@ -11,6 +11,10 @@ pub const ORDER_KIND: &str = "ix://agent-ix/commerce/type/Order";
 pub const SHIPMENT_KIND: &str = "ix://agent-ix/commerce/type/Shipment";
 pub const ORDER_SHIPMENT: &str = "ix://agent-ix/commerce/relationship/Order-shipment";
 pub const ORDER_SUCCESSOR: &str = "ix://agent-ix/commerce/relationship/Order-successor";
+pub const PAYMENT_ATTEMPT_KIND: &str = "ix://agent-ix/commerce/type/PaymentAttempt";
+pub const REFUND_KIND: &str = "ix://agent-ix/commerce/type/Refund";
+pub const ORDER_PAYMENT_ATTEMPT: &str = "ix://agent-ix/commerce/relationship/Order-paymentAttempt";
+pub const ORDER_REFUND: &str = "ix://agent-ix/commerce/relationship/Order-refund";
 
 pub fn producer() -> AdmittedStaticBundle {
     StaticProducerBundle::admit_json(include_bytes!("../fixtures/fcd-static-bundle-1.2.json"))
