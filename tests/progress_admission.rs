@@ -137,10 +137,11 @@ fn records_at_or_below_the_frontier_and_regressing_watermarks_refuse() {
 #[trace("TC-016", "FR-014-AC-12")]
 #[test]
 #[ignore = "QSL-1867: watermark progress-document authentication not implemented yet"]
-fn a_watermark_document_not_derived_from_the_prefix_refuses_at_its_line() {
-    // One changed byte, predecessor's revision, other predecessor, preceding
-    // event's record dropped: Event{line} of the watermark with the error
-    // progress::read returns for the same bytes and context.
+fn a_watermark_document_not_derived_from_its_inputs_refuses_at_its_line() {
+    // One changed byte, predecessor's revision, other predecessor, derived
+    // from the empty history, boundary one tick above the line's:
+    // Event{line} of the watermark with the error progress::read returns
+    // for the same bytes and context.
     panic!("{MISSING}");
 }
 
@@ -161,9 +162,9 @@ fn each_runtime_line_defect_refuses_at_its_line() {
 #[ignore = "QSL-1867: qualification of post-watermark records not implemented yet"]
 fn post_watermark_records_outside_the_population_refuse_at_qualification() {
     // AC-10's input with max_records >= 4: a fifth line repeating rt-event(c)
-    // -> Qualification Refused DuplicateRecord; the last line replaced by an
-    // rt-event above f for a non-member record -> Qualification Incomplete
-    // MissingMembership; the last line dropped -> Qualification Refused
+    // -> Qualification Refused DuplicateRecord; instead a fifth line that is an
+    // rt-event above f for a non-member record (c kept) -> Qualification
+    // Incomplete with sole reason MissingMembership; the last line dropped -> Qualification Refused
     // MemberRecordMismatch. Outcomes carried unchanged, no capability.
     panic!("{MISSING}");
 }

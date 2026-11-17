@@ -41,10 +41,11 @@ with their frontier ordering, opacity and the absence of ambient input.
 7. After a watermark, send scope members' records (each delivered once) at,
    below and in another clock family than the frontier, a regressing, an equal and a mismatched `inclusive_boundary`,
    mutated watermark documents (one byte, predecessor revision, other
-   predecessor, preceding record dropped) and malformed runtime lines; compare
+   predecessor, derived from the empty history, boundary one tick above the line's) and malformed runtime lines; compare
    each refusal with FR-014's table and the reader's error.
 8. In step 6's mixed input, repeat the post-watermark event (duplicate record
-   identity), replace it by an event whose record is not a scope member, and
+   identity), append instead an event above the frontier whose record is not a
+   scope member (every member keeping its record), and
    drop it so a member has no record; compare each refusal with `admit`'s
    `Refused` `DuplicateRecord`, `Incomplete` `MissingMembership` and
    `Refused` `MemberRecordMismatch` outcomes at stage `Qualification`.
