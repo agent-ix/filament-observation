@@ -25,6 +25,45 @@ fn progress_fixture(
     (qualified, document, request)
 }
 
+fn three_record_progress_fixture() -> (
+    Box<QualifiedObservation>,
+    authority::Document,
+    serde_json::Value,
+) {
+    let qualified = qualified_with_three_records();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let history = History::batch(&qualified);
+    let initial_selection = progress_selection(boundary(OpenClosed::Closed));
+    let document = authority::progress::derive(
+        Context::new(history, &owner, &subject, 1, None),
+        &initial_selection,
+        Limits::owner_max(),
+    )
+    .expect("derive three-member request progress document");
+    let mut request = progress_admission_request_wire(&qualified, &document, false);
+    request["progress"]["boundary"] = serde_json::json!({
+        "clock_family": "timestamped-event",
+        "lower_nanos": "0",
+        "upper_inclusive_nanos": "29",
+        "carrier_end_exclusive_nanos": "60",
+        "watermark_nanos": "60",
+    });
+    (qualified, document, request)
+}
+
+fn progress_selection(boundary: TemporalBoundary) -> authority::progress::Selection {
+    authority::progress::Selection::new(
+        authority::clock::Selection::new(id("clock:event-time"), id("1")),
+        vec![id("source:payments")],
+        boundary,
+        OpenClosed::Closed,
+        id("trigger:refund-request"),
+        cutoff(40),
+        id("restoration:O1"),
+    )
+}
+
 fn event_line(record: &AdmittedRecord, reading: &str) -> serde_json::Value {
     serde_json::json!({
         "contract": authority::admission::EVENT_CONTRACT,
@@ -385,18 +424,9 @@ fn admission_depends_only_on_supplied_request_bytes() {
 #[trace("TC-016", "FR-014-AC-10")]
 #[test]
 fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
-    let qualified = qualified_with_three_records();
+    let (qualified, initial_document, request) = three_record_progress_fixture();
     let owner = owner();
     let subject = subject(&qualified);
-    let history = History::batch(&qualified);
-    let initial_selection = progress_authority_selection();
-    let initial_document = authority::progress::derive(
-        Context::new(history, &owner, &subject, 1, None),
-        &initial_selection,
-        Limits::owner_max(),
-    )
-    .expect("derive three-member request progress document");
-    let request = progress_admission_request_wire(&qualified, &initial_document, false);
     let records = qualified.records();
     let frontier = boundary(OpenClosed::Closed);
     let successor = successor_document(&qualified, &initial_document, 2, frontier);
@@ -422,7 +452,7 @@ fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
     let initial_expected = authority::progress::read(
         initial_document.bytes(),
         Context::new(History::batch(&qualified), &owner, &subject, 1, None),
-        &initial_selection,
+        &progress_selection(frontier),
         Limits::owner_max(),
     )
     .expect("read initial progress document over all records");
@@ -432,15 +462,7 @@ fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
     else {
         panic!("line 3 is not an admitted watermark");
     };
-    let successor_selection = authority::progress::Selection::new(
-        authority::clock::Selection::new(id("clock:event-time"), id("1")),
-        vec![id("source:payments")],
-        frontier,
-        OpenClosed::Closed,
-        id("trigger:refund-request"),
-        cutoff(40),
-        id("restoration:O1"),
-    );
+    let successor_selection = progress_selection(frontier);
     let successor_expected = authority::progress::read(
         successor.bytes(),
         Context::new(
@@ -475,18 +497,9 @@ fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
 #[trace("TC-016", "FR-014-AC-14")]
 #[test]
 fn qualification_uses_the_complete_event_record_population() {
-    let qualified = qualified_with_three_records();
+    let (qualified, document, mut request) = three_record_progress_fixture();
     let owner = owner();
     let subject = subject(&qualified);
-    let history = History::batch(&qualified);
-    let selection = progress_authority_selection();
-    let document = authority::progress::derive(
-        Context::new(history, &owner, &subject, 1, None),
-        &selection,
-        Limits::owner_max(),
-    )
-    .expect("derive request progress document");
-    let mut request = progress_admission_request_wire(&qualified, &document, false);
     request["limits"]["max_records"] = "4".into();
     let records = qualified.records();
     let first_three = vec![
@@ -564,23 +577,22 @@ fn qualification_uses_the_complete_event_record_population() {
 #[trace("TC-016", "FR-014-AC-11")]
 #[test]
 fn frontier_rejects_regressions_and_records_at_or_below_it() {
-    let (qualified, initial, mut request) = progress_fixture(false);
-    request["limits"]["max_records"] = "3".into();
+    let (qualified, initial, mut request) = three_record_progress_fixture();
+    request["limits"]["max_records"] = "4".into();
     let boundary = boundary(OpenClosed::Closed);
     let successor = successor_document(&qualified, &initial, 2, boundary);
     let watermark = watermark_line(&successor, "2", boundary);
-    let prefix = qualified
-        .records()
-        .iter()
-        .map(record_candidate_wire)
-        .collect::<Vec<_>>();
-    let mut at_frontier = prefix.clone();
-    at_frontier.push(watermark.clone());
-    at_frontier.push(event_line(&qualified.records()[0], "1"));
+    let records = qualified.records();
+    let at_frontier = vec![
+        record_candidate_wire(&records[0]),
+        watermark.clone(),
+        event_line(&records[1], "1"),
+        record_candidate_wire(&records[2]),
+    ];
     let error = admit_lines(&request, &at_frontier).expect_err("record at the frontier refuses");
     assert_eq!(
         error.stage(),
-        authority::admission::AdmissionStage::Event { line: 4 }
+        authority::admission::AdmissionStage::Event { line: 3 }
     );
     assert!(
         matches!(error.cause(), authority::admission::AdmissionCause::Authority(cause) if cause.code() == authority::ErrorCode::ExpectedMismatch)
@@ -593,13 +605,16 @@ fn frontier_rejects_regressions_and_records_at_or_below_it() {
         watermark_nanos: 30,
     };
     let regressed_document = successor_document(&qualified, &initial, 3, regressed);
-    let mut regressing = prefix;
+    let mut regressing = records
+        .iter()
+        .map(record_candidate_wire)
+        .collect::<Vec<_>>();
     regressing.push(watermark);
     regressing.push(watermark_line(&regressed_document, "3", regressed));
     let error = admit_lines(&request, &regressing).expect_err("regressed watermark refuses");
     assert_eq!(
         error.stage(),
-        authority::admission::AdmissionStage::Event { line: 4 }
+        authority::admission::AdmissionStage::Event { line: 5 }
     );
     assert!(
         matches!(error.cause(), authority::admission::AdmissionCause::Authority(cause) if cause.code() == authority::ErrorCode::ExpectedMismatch)
@@ -609,17 +624,9 @@ fn frontier_rejects_regressions_and_records_at_or_below_it() {
 #[trace("TC-016", "FR-014-AC-12")]
 #[test]
 fn watermark_documents_are_authenticated_against_the_qualified_history() {
-    let qualified = qualified_with_three_records();
+    let (qualified, initial, request) = three_record_progress_fixture();
     let owner = owner();
     let subject = subject(&qualified);
-    let selection = progress_authority_selection();
-    let initial = authority::progress::derive(
-        Context::new(History::batch(&qualified), &owner, &subject, 1, None),
-        &selection,
-        Limits::owner_max(),
-    )
-    .expect("derive request progress document");
-    let request = progress_admission_request_wire(&qualified, &initial, false);
     let boundary = boundary(OpenClosed::Closed);
     let successor = successor_document(&qualified, &initial, 2, boundary);
     let mut lines = vec![
