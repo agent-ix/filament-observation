@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agent-ix:filament-observation:record-candidate:1",
+  "title": "Record candidate line",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "identity", "binding_identity", "source_identity", "schema_identity", "subject", "signal_identity", "trigger_identity", "unit", "value", "visibility", "anchor", "event_time_nanos", "ingestion_time_nanos", "causal_relationship_identity", "clock_identity", "clock_revision", "clock_uncertainty_nanos"],
+  "properties": {
+    "contract": {"const": "filament.observation.record-candidate/v1"},
+    "identity": {"type": "string", "minLength": 1},
+    "binding_identity": {"type": "string", "minLength": 1},
+    "source_identity": {"type": "string", "minLength": 1},
+    "schema_identity": {"type": "string", "minLength": 1},
+    "subject": {"type": "object"},
+    "signal_identity": {"type": "string", "minLength": 1},
+    "trigger_identity": {"type": "string", "minLength": 1},
+    "unit": {"type": "string", "minLength": 1},
+    "value": {"type": "object"},
+    "visibility": {"enum": ["internal", "external"]},
+    "anchor": {"type": "object"},
+    "event_time_nanos": {"type": "string", "pattern": "^(0|-?[1-9][0-9]*)$"},
+    "ingestion_time_nanos": {"type": "string", "pattern": "^(0|-?[1-9][0-9]*)$"},
+    "causal_relationship_identity": {"type": ["array", "null"], "items": {"type": "integer", "minimum": 0, "maximum": 255}},
+    "clock_identity": {"type": "string", "minLength": 1},
+    "clock_revision": {"type": "string", "minLength": 1},
+    "clock_uncertainty_nanos": {"type": "string", "pattern": "^(0|[1-9][0-9]*)$"}
+  }
+}

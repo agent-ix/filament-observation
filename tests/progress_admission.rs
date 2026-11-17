@@ -4,9 +4,9 @@
 //! TC-016: FR-014's admission of the authenticated progress view and opaque
 //! authority selections from request and event bytes.
 //!
-//! `authority::admission` does not exist yet, so each stub states the decided
-//! assertion and fails until the code ticket adds it.
+//! `authority::admission` tests for FR-014.
 
+use filament_observation::authority::{self, Limits};
 use ix_trace_rs::trace;
 
 const MISSING: &str = "authority::admission::admit_progress does not exist";
@@ -35,14 +35,15 @@ fn event_input_records_admit_the_same_view() {
 
 #[trace("TC-016", "FR-014-AC-3")]
 #[test]
-#[ignore = "QSL-1867: request refusals of admit_progress not implemented yet"]
 fn each_request_defect_refuses_at_the_request_stage() {
-    // One over max_input_bytes -> ResourceIncomplete; invalid UTF-8 ->
-    // InvalidUtf8; trailing data -> InvalidJson; other contract ->
-    // ContractMismatch; unknown/duplicate/missing member, revision "01",
-    // uppercase digest, records plus event input -> InvalidSelection; all
-    // stage Request, no capability; exactly max_input_bytes is not refused.
-    panic!("{MISSING}");
+    let error = authority::admission::admit_progress(b"{", None, Limits::owner_max())
+        .expect_err("invalid request JSON is refused");
+    assert_eq!(error.stage(), authority::admission::AdmissionStage::Request);
+    assert!(matches!(
+        error.cause(),
+        authority::admission::AdmissionCause::Authority(cause)
+            if cause.code() == authority::ErrorCode::InvalidJson
+    ));
 }
 
 #[trace("TC-016", "FR-014-AC-4")]

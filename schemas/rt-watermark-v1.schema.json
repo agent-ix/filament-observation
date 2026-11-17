@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agent-ix:filament-observation:rt-watermark:1",
+  "title": "Runtime watermark input line",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "revision", "boundary", "state", "inclusive_boundary", "progress_document"],
+  "properties": {
+    "contract": {"const": "filament.observation.rt-watermark/v1"},
+    "revision": {"type": "string", "pattern": "^[1-9][0-9]*$"},
+    "boundary": {"$ref": "observation-progress-assertion-v1.schema.json#/$defs/boundary"},
+    "state": {"enum": ["open", "closed"]},
+    "inclusive_boundary": {"type": "string", "pattern": "^(0|-?[1-9][0-9]*)$"},
+    "progress_document": {"type": "string"}
+  }
+}
