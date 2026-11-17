@@ -757,13 +757,25 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
         other => panic!("empty-history fixture admission failed: {other:?}"),
     };
     let empty_subject = super::subject(&empty_history);
+    let empty_predecessor = authority::progress::derive(
+        Context::new(
+            History::batch(&empty_history),
+            &owner(),
+            &empty_subject,
+            1,
+            None,
+        ),
+        &progress_selection(boundary),
+        Limits::owner_max(),
+    )
+    .expect("derive valid revision-one progress document from empty history");
     let empty_document = authority::progress::derive(
         Context::new(
             History::batch(&empty_history),
             &owner(),
             &empty_subject,
             2,
-            None,
+            Some(&empty_predecessor),
         ),
         &progress_selection(boundary),
         Limits::owner_max(),
