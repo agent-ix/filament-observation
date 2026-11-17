@@ -3562,6 +3562,8 @@
           "required": [
             "population_identity",
             "boundary_identity",
+            "boundary",
+            "basis",
             "facts",
             "state"
           ],
@@ -3574,6 +3576,15 @@
               "type": "string",
               "minLength": 1
             },
+            "boundary": {
+              "$ref": "urn:agent-ix:filament-observation:completeness-assertion:1#/properties/payload/properties/boundary"
+            },
+            "basis": {
+              "enum": [
+                "derived",
+                "revised"
+              ]
+            },
             "facts": {
               "type": "array",
               "maxItems": 10000,
@@ -3583,7 +3594,8 @@
                 "required": [
                   "member_identity",
                   "observation_identity",
-                  "status"
+                  "status",
+                  "origin"
                 ],
                 "properties": {
                   "member_identity": {
@@ -3601,6 +3613,12 @@
                       "available",
                       "incomplete",
                       "contradicted"
+                    ]
+                  },
+                  "origin": {
+                    "enum": [
+                      "selected",
+                      "carried"
                     ]
                   }
                 }

@@ -250,12 +250,13 @@
       }
     },
     "completenessValue": {
-      "type": "object", "additionalProperties": false, "required": ["population_identity", "boundary_identity", "facts", "state"],
+      "type": "object", "additionalProperties": false, "required": ["population_identity", "boundary_identity", "boundary", "basis", "facts", "state"],
       "properties": {
         "population_identity": {"$ref": "#/$defs/text"}, "boundary_identity": {"$ref": "#/$defs/text"},
+        "boundary": {"$ref": "#/$defs/boundary"}, "basis": {"enum": ["derived", "revised"]},
         "facts": {"type": "array", "maxItems": 10000, "items": {
-          "type": "object", "additionalProperties": false, "required": ["member_identity", "observation_identity", "status"],
-          "properties": {"member_identity": {"$ref": "#/$defs/text"}, "observation_identity": {"type": ["string", "null"]}, "status": {"enum": ["available", "incomplete", "contradicted"]}}
+          "type": "object", "additionalProperties": false, "required": ["member_identity", "observation_identity", "status", "origin"],
+          "properties": {"member_identity": {"$ref": "#/$defs/text"}, "observation_identity": {"type": ["string", "null"]}, "status": {"enum": ["available", "incomplete", "contradicted"]}, "origin": {"enum": ["selected", "carried"]}}
         }},
         "state": {"enum": ["complete", "incomplete", "contradicted"]}
       }
@@ -299,7 +300,7 @@
         "role": {"const": "completeness"},
         "fact_subject": {"$ref": "#/$defs/scalarFactSubject"},
         "payload": {"properties": {"kind": {"const": "completeness"}, "value": {
-          "$ref": "#/$defs/completenessValue", "required": ["facts", "state"], "properties": {"facts": {"type": "array", "maxItems": 0}, "state": {"const": "complete"}}
+          "$ref": "#/$defs/completenessValue", "required": ["facts", "state"], "properties": {"facts": {"type": "array", "maxItems": 0}, "basis": {"const": "derived"}, "state": {"const": "complete"}}
         }}}
       }, "required": ["role", "payload"]
     },

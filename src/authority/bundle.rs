@@ -22,7 +22,7 @@ pub const CONTRACT: &str = "filament.observation-authority/v1";
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-authority-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "3c9767708eff0783b4f2a38805d9de693deb5e01cceef1b0edd8ba02d6dfa599";
+pub const SCHEMA_SHA256: &str = "263dd4fdfd4b8525ece2170f361695eb13de2ced2804bdafb43e8c08f052e14d";
 /// Immutable structurally empty bundle-contract label.
 pub const V2_CONTRACT: &str = "filament.observation-authority/v2";
 /// Pinned JSON Schema bytes for [`V2_CONTRACT`].
@@ -30,7 +30,7 @@ pub const V2_SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-authority-v2.schema.json");
 /// Lowercase SHA-256 digest of [`V2_SCHEMA_BYTES`].
 pub const V2_SCHEMA_SHA256: &str =
-    "f45490543667681d606bfea8d22b0efd6520667a3fa7deed5ee93b5cdb70a012";
+    "1f987d0c3ed837af13b1c1dd1df8a0e993d5b9006f14a2f5cba049d1fc6a3ab3";
 /// Immutable lineage-view contract label.
 pub const LINEAGE_CONTRACT: &str = "filament.observation-authority-lineage/v1";
 /// Pinned JSON Schema bytes for [`LINEAGE_CONTRACT`].

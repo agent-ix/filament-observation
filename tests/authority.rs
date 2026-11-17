@@ -6020,7 +6020,7 @@ fn tc011_each_query_limit_admits_exact_and_refuses_one_over() {
     assert_eq!(
         usage,
         authority::query::Usage {
-            input_bytes: 47_309,
+            input_bytes: 47_765,
             members: 2,
             occurrences: 2,
             arithmetic_steps: 2,
