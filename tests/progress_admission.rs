@@ -94,3 +94,61 @@ fn admission_reads_only_the_supplied_bytes() {
     // give equal capabilities.
     panic!("{MISSING}");
 }
+
+#[trace("TC-016", "FR-014-AC-9")]
+#[test]
+#[ignore = "QSL-1867: runtime event and watermark lines in admit_progress not implemented yet"]
+fn runtime_event_and_watermark_lines_admit_ordered_steps() {
+    // Two filament.observation.rt-event/v1 lines carrying AC-1's records,
+    // then one filament.observation.rt-watermark/v1 line: view == AC-1's;
+    // steps() == [Event(line 1), Event(line 2), Watermark(line 3)] with each
+    // event's record, reading and exact inputs bytes, and the watermark's view
+    // == progress::read over both records with the line's boundary, state and
+    // revision and AC-1's document as predecessor; assertion() is the document
+    // bytes and inclusive_boundary() the line's.
+    panic!("{MISSING}");
+}
+
+#[trace("TC-016", "FR-014-AC-10")]
+#[test]
+#[ignore = "QSL-1867: mixed record-candidate and runtime lines not implemented yet"]
+fn mixed_line_kinds_admit_and_record_lines_alone_admit_as_before() {
+    // record-candidate, rt-event, rt-watermark, rt-event above the new
+    // frontier admits; the record-candidate line adds a record and no step.
+    // Record-candidate lines only admit AC-2's capability with steps() empty.
+    panic!("{MISSING}");
+}
+
+#[trace("TC-016", "FR-014-AC-11")]
+#[test]
+#[ignore = "QSL-1867: frontier ordering of runtime lines not implemented yet"]
+fn records_at_or_below_the_frontier_and_regressing_watermarks_refuse() {
+    // After a watermark with frontier f: a record of either kind at f, below
+    // f, or in another clock family -> Event{line} ExpectedMismatch; a
+    // watermark below f -> ExpectedMismatch; one equal to f with a greater
+    // revision admits; inclusive_boundary != boundary's inclusive upper ->
+    // ExpectedMismatch. No capability on any refusal.
+    panic!("{MISSING}");
+}
+
+#[trace("TC-016", "FR-014-AC-12")]
+#[test]
+#[ignore = "QSL-1867: watermark progress-document authentication not implemented yet"]
+fn a_watermark_document_not_derived_from_the_prefix_refuses_at_its_line() {
+    // One changed byte, predecessor's revision, other predecessor, preceding
+    // event's record dropped: Event{line} of the watermark with the error
+    // progress::read returns for the same bytes and context.
+    panic!("{MISSING}");
+}
+
+#[trace("TC-016", "FR-014-AC-13")]
+#[test]
+#[ignore = "QSL-1867: runtime line decoding refusals not implemented yet"]
+fn each_runtime_line_defect_refuses_at_its_line() {
+    // Line 3: rt-event record naming filament.observation.record/v2 ->
+    // ContractMismatch; reading "18446744073709551616" or "01", inputs as a
+    // JSON object, watermark without progress_document, inclusive_boundary
+    // "+5" -> InvalidSelection; contract filament.observation.rt-event/v2 ->
+    // ContractMismatch. All Event{line: 3}.
+    panic!("{MISSING}");
+}

@@ -9,6 +9,7 @@ relationships:
   - { target: ix://agent-ix/filament-observation/FR-005, type: depends_on }
   - { target: ix://agent-ix/filament-spec-language/FR-251, type: references }
   - { target: ix://agent-ix/filament-spec-language/FR-761, type: references }
+  - { target: ix://agent-ix/filament-contract-runtime/interface_012, type: references }
 ---
 # FR-014: Admit the authenticated progress view and opaque authority selections from request and event input
 
@@ -31,7 +32,11 @@ assembled each owner type by hand, so a command-line consumer had no path
 from its request and event bytes to the view. This entry is that path. It
 reuses the FR-001 admission and the FR-004 strict readers, so it adds no
 second set of admission rules and no way to obtain authority other than
-the existing readers.
+the existing readers. The event input also carries the runtime monitor's own
+event and watermark lines, so one stream feeds both this admission and the
+monitor: every runtime event is authenticated as an observation record, and
+every runtime watermark as an owner-derived successor progress assertion,
+before the runtime sees it.
 
 ## Interface
 
@@ -43,6 +48,12 @@ The module `authority::admission` SHALL publish:
 | `REQUEST_SCHEMA_BYTES` | the JSON Schema bytes of the request contract |
 | `RECORD_CONTRACT` | `"filament.observation.record-candidate/v1"` |
 | `RECORD_SCHEMA_BYTES` | the JSON Schema bytes of one event-input record |
+| `EVENT_CONTRACT` | `"filament.observation.rt-event/v1"` |
+| `EVENT_SCHEMA_BYTES` | the JSON Schema bytes of one runtime event line |
+| `WATERMARK_CONTRACT` | `"filament.observation.rt-watermark/v1"` |
+| `WATERMARK_SCHEMA_BYTES` | the JSON Schema bytes of one runtime watermark line |
+| `AdmittedStep` | one admitted runtime line: `Event(AdmittedEvent)` or `Watermark(AdmittedWatermark)` |
+| `AdmittedEvent`, `AdmittedWatermark` | the admitted runtime event and watermark |
 | `admit_progress(request: &[u8], events: Option<&[u8]>, limits: Limits) -> Result<AdmittedProgress, AdmissionError>` | the one admission entry |
 | `AdmittedProgress` | the admitted capability |
 | `AuthoritySelections` | the opaque selections the view was authenticated against |
@@ -52,8 +63,16 @@ The module `authority::admission` SHALL publish:
 
 `AdmittedProgress` SHALL provide `view(&self) -> &progress::View`,
 `selections(&self) -> &AuthoritySelections`,
-`qualified(&self) -> &QualifiedObservation` and
-`into_parts(self) -> (progress::View, AuthoritySelections)`.
+`qualified(&self) -> &QualifiedObservation`,
+`steps(&self) -> &[AdmittedStep]` (the admitted runtime lines in line order;
+empty when the input holds none) and
+`into_parts(self) -> (progress::View, AuthoritySelections, Vec<AdmittedStep>)`.
+`AdmittedEvent` SHALL provide `line(&self) -> u64`,
+`record(&self) -> &AdmittedRecord`, `reading(&self) -> u64` and
+`inputs(&self) -> &[u8]`. `AdmittedWatermark` SHALL provide
+`line(&self) -> u64`, `view(&self) -> &progress::View`,
+`assertion(&self) -> &[u8]` (the exact progress document bytes it
+authenticated) and `inclusive_boundary(&self) -> &Integer`.
 `AuthoritySelections` SHALL provide `authority(&self) -> &AuthoritySelection`,
 `subject(&self) -> &SubjectSelection`, `clock(&self) -> &clock::Selection`,
 `source(&self) -> &Identity`, `progress_identity(&self) -> &Identity` (the
@@ -105,10 +124,68 @@ bytes need not be canonical; the owner documents it carries must be.
 ### The event input
 
 The event input, when supplied, is a sequence of lines, each ending in one
-LF (a final LF is optional). Each line is one closed JSON object with
-`contract` exactly `RECORD_CONTRACT` and every other `AdmittedRecord` field
-under its field name, in the same encodings as the request. Lines are numbered
-from 1. An empty input holds zero records.
+LF (a final LF is optional). Lines are numbered from 1. An empty input holds
+zero records. Each line is one closed JSON object whose `contract` member
+selects one of three line kinds; the kinds may be mixed in any order in one
+input.
+
+| Line kind | `contract` | Members besides `contract` |
+| --- | --- | --- |
+| record candidate | `RECORD_CONTRACT` | every other `AdmittedRecord` field under its field name, in the same encodings as the request |
+| runtime event | `EVENT_CONTRACT` | `record`: one record-candidate object exactly as the record-candidate line, its own `contract` included; `reading`: the raw counter reading as a canonical unsigned decimal string, at most 2^64 − 1; `inputs`: a JSON string whose UTF-8 bytes are the event's canonical captures value |
+| runtime watermark | `WATERMARK_CONTRACT` | `revision`: the asserted progress document's revision; `boundary` and `state`: the advanced boundary and open or closed state in the FR-004 JSON forms; `inclusive_boundary`: the inclusive coverage as a canonical signed decimal string; `progress_document`: a JSON string whose UTF-8 bytes are the exact `filament.observation.progress-assertion/v1` document asserting that boundary |
+
+These are the runtime monitor's input lines. A runtime event carries the
+fields of a runtime `Event` that originate in the stream: the raw reading and
+its captured inputs, together with the observation record the event is. A
+runtime watermark carries the fields of a runtime `Watermark` that originate
+in the stream: the authority assertion and its inclusive boundary. The
+remaining runtime fields (the input context of package lock, clause, subject,
+occurrence, clock binding, counter, tick unit, width, profile and order, the
+progress context and the scope) are the same for every line of one monitor
+and come from the request and the admitted selections, not from each line,
+so a line cannot introduce an association the request did not select.
+`inputs` is retained as its exact bytes; the runtime, not this library,
+decodes the captures value.
+
+### The admitted progress history
+
+The event input maps to one ordered progress history:
+
+- A record-candidate line is a record candidate. A runtime event line is a
+  record candidate (its `record`) and also one `AdmittedEvent` step. Every
+  record candidate, of either kind, joins the one record population that
+  qualification admits, in line order, and counts toward `limits.max_records`.
+- A runtime watermark line advances the frontier. The frontier before the
+  first watermark line is the inclusive upper value of the request's
+  `progress.boundary` (`upper_inclusive` for event positions and fixed
+  samples, `upper_inclusive_nanos` for timestamped events). A watermark line's
+  `inclusive_boundary` SHALL equal the inclusive upper value of its own
+  `boundary`, and once its document is authenticated that value is the new
+  frontier.
+- The request's `progress_document` is authenticated over the records of the
+  lines before the first watermark line, or over every record when the input
+  holds no watermark line. Each watermark's `progress_document` is
+  authenticated over the records of every line before it, with the request's
+  `progress` selection in which only `boundary` and `state` are replaced by
+  the line's, at the line's `revision`, and with the previously authenticated
+  progress document (the request's, then each earlier watermark's) as its
+  direct predecessor. A watermark is therefore a successor progress assertion
+  with a greater revision and unbroken lineage, never a bare number.
+
+### Ordering
+
+- A watermark never moves back: a watermark line whose `inclusive_boundary` is
+  less than the current frontier is refused. An equal boundary is admitted,
+  since a repeated inclusive assertion is valid runtime progress.
+- A record at or below the frontier is refused: after the first watermark
+  line, a record candidate of either kind whose anchor is at or below the
+  current frontier in that frontier's clock family is refused, and so is a
+  record whose anchor is of another clock family. Records before the first
+  watermark line are part of the request document's history and are not
+  compared with a frontier.
+- Order is the line order. It is never inferred from timestamps, readings or
+  arrival, and the library adds no event or watermark at end of input.
 
 ### Exactly one record source
 
@@ -138,12 +215,19 @@ binding history.
 5. **Source selection.** It SHALL require `observation_source` to be one of
    the view's `required_sources` and, when the view carries association rows,
    the observation source of at least one row.
-6. **Result.** It SHALL return the view, the qualified observation and an
+6. **Runtime lines.** In line order, it SHALL check each record against the
+   current frontier, and SHALL authenticate each watermark line through
+   `progress::read` as the admitted progress history states, checking its
+   `inclusive_boundary` and the ordering rules; the first refused line ends
+   admission with no capability.
+7. **Result.** It SHALL return the view, the qualified observation, an
    `AuthoritySelections` holding exactly the `authority`, `subject`,
    `progress.clock` and `observation_source` that step 4 and 5 compared, with
-   the progress document's identity. The view is equal to the one
+   the progress document's identity, and one `AdmittedStep` per runtime line
+   in line order. The view, and each watermark's view, is equal to the one
    `progress::read` returns for the same inputs assembled through the Rust
-   API.
+   API. An input of record-candidate lines only admits exactly what it admits
+   without runtime lines, with no steps.
 
 ## What is authenticated, and by what
 
@@ -160,6 +244,15 @@ binding history.
   identity preimage; **the membership** by the explicit-members strict read
   and its FR-264 identity; **the population** by its FR-263 identity; and
   **the producer bundle** by the FR-005 static-bundle admission.
+- **Each runtime event's record** is authenticated exactly as a record
+  candidate is; its `reading` and `inputs` are retained as supplied and are
+  admitted by the runtime against the selected association. **Each runtime
+  watermark's progress document** is authenticated by `progress::read` as the
+  admitted progress history states: the owner derives the successor document
+  from the records before the line and the line's boundary, state and
+  revision, and admits the supplied bytes only when they are that derivation.
+  A watermark line's `inclusive_boundary` is admitted only when it equals the
+  authenticated boundary.
 - The authentication is recomputation by the observation owner. No signature,
   key, token, caller-set trust or qualified flag, file location or transport
   attribute authenticates anything. The selected package digest and
@@ -173,7 +266,8 @@ binding history.
 - `AdmittedProgress` and `AuthoritySelections` SHALL have private fields, no
   public constructor, no `Default`, no `Serialize` or `Deserialize`, and no
   mutable access; `admit_progress` is their only producer. They are `Clone`,
-  `Debug`, `Eq` and `PartialEq`.
+  `Debug`, `Eq` and `PartialEq`. `AdmittedStep`, `AdmittedEvent` and
+  `AdmittedWatermark` follow the same rules.
 - The selections are bound to the document they authenticated: `binds` is
   false for a view of any other admission, and a consumer cannot put a
   caller-built selection in their place.
@@ -195,7 +289,14 @@ carried unchanged.
 | `records` present and an event input supplied | `Request` | `Authority` `InvalidSelection` |
 | event input longer than `max_input_bytes` | `Events` | `Authority` `ResourceIncomplete` |
 | the record population passes `limits.max_records` | `Request` or `Event { line }` of the first record past it | `Authority` `ResourceIncomplete` |
-| an event line that is not UTF-8, not one JSON object (an empty line included), names another contract, or has an unknown, duplicate, missing or malformed member | `Event { line }` | `Authority` `InvalidUtf8`, `InvalidJson`, `ContractMismatch` or `InvalidSelection` |
+| an event line that is not UTF-8, not one JSON object (an empty line included), names a contract other than `RECORD_CONTRACT`, `EVENT_CONTRACT` or `WATERMARK_CONTRACT`, or has an unknown, duplicate, missing or malformed member | `Event { line }` | `Authority` `InvalidUtf8`, `InvalidJson`, `ContractMismatch` or `InvalidSelection` |
+| a runtime event whose `record` names a contract other than `RECORD_CONTRACT`, or has an unknown, duplicate, missing or malformed member | `Event { line }` | `Authority` `ContractMismatch` or `InvalidSelection` |
+| a runtime event `reading` that is not a canonical unsigned decimal or exceeds 2^64 − 1, or `inputs` that is not a JSON string | `Event { line }` | `Authority` `InvalidSelection` |
+| a runtime watermark `revision` or `inclusive_boundary` that is not a canonical decimal, or a `boundary` or `state` not in its FR-004 form | `Event { line }` | `Authority` `InvalidSelection` |
+| after a watermark line, a record (of either kind) at or below the current frontier, or anchored in another clock family | `Event { line }` of that record | `Authority` `ExpectedMismatch` |
+| a watermark `inclusive_boundary` that does not equal its `boundary`'s inclusive upper value | `Event { line }` | `Authority` `ExpectedMismatch` |
+| a watermark `inclusive_boundary` less than the current frontier | `Event { line }` | `Authority` `ExpectedMismatch` |
+| a watermark `progress_document` that fails its strict read | `Event { line }` | `Authority` with the reader's error unchanged |
 | the producer bundle is refused | `Producer` | `Producer` with its refusal |
 | `admit` returns `Incomplete` or `Refused` | `Qualification` | `Observation` with that outcome unchanged |
 | the predecessor or progress document fails its strict read | `Progress` | `Authority` with the reader's error unchanged |
@@ -213,6 +314,11 @@ carried unchanged.
 | FR-014-AC-6 | A progress document with one byte changed, re-encoded non-canonically, derived at another revision, derived for another scope, or derived from the history with one record dropped returns `stage` `Progress` with `cause` `Authority` equal to the error `progress::read` returns for the same bytes and selections, and no capability; an `observation_source` outside the required sources returns `Progress` `ExpectedMismatch`. | Test (TC-016) |
 | FR-014-AC-7 | `AdmittedProgress` and `AuthoritySelections` have no public constructor, field, `Default`, `Serialize` or `Deserialize` (a crate outside this one cannot build either); `binds` of admission A's selections over admission B's view of a different document is false; every accessor returns a borrow without allocating. | Test (TC-016) |
 | FR-014-AC-8 | The entry reads no file, standard input, environment or clock: admitting the same request and event bytes twice, in different working directories and environments, returns equal capabilities. | Test (TC-016) |
+| FR-014-AC-9 | An event input of two runtime event lines followed by one runtime watermark line, whose records are AC-1's two records, admits a view equal to AC-1's view and three steps in line order: two `AdmittedEvent`s whose `line`, `record`, `reading` and exact `inputs` bytes are the lines', and one `AdmittedWatermark` whose `view` equals `progress::read` of its document over both records with the line's boundary, state and revision and AC-1's document as predecessor, whose `assertion` is the document bytes and whose `inclusive_boundary` is the line's. | Test (TC-016) |
+| FR-014-AC-10 | An input mixing a record-candidate line, a runtime event line, a runtime watermark line and a later runtime event above the new frontier admits, with the record-candidate line contributing a record and no step; an input of record-candidate lines only admits a capability equal to AC-2's with `steps()` empty. | Test (TC-016) |
+| FR-014-AC-11 | After a watermark line with frontier `f`: a later record of either kind anchored at `f`, one anchored below `f`, and one anchored in another clock family each return `Event { line }` of that record with `ExpectedMismatch`; a later watermark with `inclusive_boundary` below `f` returns `ExpectedMismatch` at its line, while one equal to `f` (with a greater revision) admits; a watermark whose `inclusive_boundary` differs from its `boundary`'s inclusive upper value returns `ExpectedMismatch` at its line. Each returns no capability. | Test (TC-016) |
+| FR-014-AC-12 | A watermark whose `progress_document` has one byte changed, was derived at the predecessor's revision, names another predecessor, or was derived from the history without the preceding event's record returns `Event { line }` of the watermark with `cause` `Authority` equal to the error `progress::read` returns for the same bytes and context, and no capability. | Test (TC-016) |
+| FR-014-AC-13 | On the third line, a runtime event whose `record` names `filament.observation.record/v2`, whose `reading` is `"18446744073709551616"` or `"01"`, or whose `inputs` is a JSON object, and a runtime watermark lacking `progress_document` or with `inclusive_boundary` `"+5"`, each return `Event { line: 3 }` with `ContractMismatch`, `InvalidSelection`, `InvalidSelection`, `InvalidSelection`, `InvalidSelection` or `InvalidSelection` respectively; a line naming `filament.observation.rt-event/v2` returns `ContractMismatch`. | Test (TC-016) |
 
 ## Dependencies
 
@@ -220,3 +326,9 @@ carried unchanged.
 - [FR-004](FR-004-publish-observation-authority-artifacts.md) owns the progress-assertion contract, its strict reader, the error-code catalog and the owner limits.
 - [FR-005](FR-005-adopt-authority-qualified-runtime-references.md) owns the Producer interface 1.2.0 static-bundle admission.
 - FSL FR-251 and FR-761 own the consumer: `fsl_analyze::monitor_root::admit_progress_view` (fact `CF-RT-02`) calls this entry and passes the view and selections into the plan authority; the driver reads the request and event files.
+- The driver's runtime-monitor generation (filament-driver FR-020) sends the
+  runtime event and watermark lines on its `--events` input and passes each
+  admitted step to the runtime in line order.
+- RT [interface-012](ix://agent-ix/filament-contract-runtime/interface_012)
+  owns the runtime `Event` and `Watermark` operations, their input context,
+  progress context and the runtime's own regression refusal.
