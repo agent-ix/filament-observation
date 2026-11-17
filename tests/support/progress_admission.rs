@@ -439,8 +439,8 @@ fn frontier_rejects_regressions_and_records_at_or_below_it() {
     let regressed = TemporalBoundary::TimestampedEvent {
         lower_nanos: 0,
         upper_inclusive_nanos: 19,
-        carrier_end_exclusive_nanos: 20,
-        watermark_nanos: 20,
+        carrier_end_exclusive_nanos: 30,
+        watermark_nanos: 30,
     };
     let regressed_document = successor_document(&qualified, &initial, 3, regressed);
     let mut regressing = prefix;
