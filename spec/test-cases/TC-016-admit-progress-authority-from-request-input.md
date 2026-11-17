@@ -33,14 +33,21 @@ with their frontier ordering, opacity and the absence of ambient input.
    across working directories and environments.
 6. Encode AC-1's records as runtime event lines, add a runtime watermark
    line carrying the successor progress document, and admit two events and a
-   watermark, then a mix of record-candidate, event and watermark lines;
-   compare each step with the lines and each watermark view with
-   `progress::read` over the records before it.
-7. After a watermark, send records at, below and in another clock family than
-   the frontier, a regressing, an equal and a mismatched `inclusive_boundary`,
+   watermark, then a mix of record-candidate, event and watermark lines
+   over a three-member scope whose third member's record arrives as a
+   runtime event after the watermark, above its frontier; compare each step
+   with the lines and the request's and each watermark's view with
+   `progress::read` over the qualified history of every record of the input.
+7. After a watermark, send scope members' records (each delivered once) at,
+   below and in another clock family than the frontier, a regressing, an equal and a mismatched `inclusive_boundary`,
    mutated watermark documents (one byte, predecessor revision, other
    predecessor, preceding record dropped) and malformed runtime lines; compare
    each refusal with FR-014's table and the reader's error.
+8. In step 6's mixed input, repeat the post-watermark event (duplicate record
+   identity), replace it by an event whose record is not a scope member, and
+   drop it so a member has no record; compare each refusal with `admit`'s
+   `Refused` `DuplicateRecord`, `Incomplete` `MissingMembership` and
+   `Refused` `MemberRecordMismatch` outcomes at stage `Qualification`.
 
 ## Expected Results
 
@@ -50,7 +57,10 @@ errors equal the strict reader's. The capability is opaque and bound to its
 document, and admission reads only the supplied bytes. Runtime lines admit
 as ordered steps; a watermark never moves back, a record at or below the
 frontier refuses at its line, and an input of record-candidate lines only
-admits as before with no steps.
+admits as before with no steps. A record after a watermark admits when it
+is an undelivered member's record above the frontier; a repeated identity,
+a non-member record or a member left without a record refuses at
+qualification.
 
 ## Status
 

@@ -163,15 +163,25 @@ The event input maps to one ordered progress history:
   `inclusive_boundary` SHALL equal the inclusive upper value of its own
   `boundary`, and once its document is authenticated that value is the new
   frontier.
-- The request's `progress_document` is authenticated over the records of the
-  lines before the first watermark line, or over every record when the input
-  holds no watermark line. Each watermark's `progress_document` is
-  authenticated over the records of every line before it, with the request's
-  `progress` selection in which only `boundary` and `state` are replaced by
-  the line's, at the line's `revision`, and with the previously authenticated
-  progress document (the request's, then each earlier watermark's) as its
-  direct predecessor. A watermark is therefore a successor progress assertion
-  with a greater revision and unbroken lineage, never a bare number.
+- Every record candidate of the input, before and after any watermark line,
+  is a record of the one population the request selects: the request's
+  `scope` lists every member with its record identity and anchor, FR-001
+  binds every member to exactly one record and refuses a duplicate record
+  identity, and one subject names that population for every progress
+  document of the admission. The qualified history is therefore the
+  qualification of every record of the input, and a record line after a
+  watermark is a member's record that the stream delivers later, never a
+  new member and never a second record of an earlier member.
+- The request's `progress_document` is authenticated over that qualified
+  history. Each watermark's `progress_document` is authenticated over the
+  same qualified history, with the request's `progress` selection in which
+  only `boundary` and `state` are replaced by the line's, at the line's
+  `revision`, and with the previously authenticated progress document (the
+  request's, then each earlier watermark's) as its direct predecessor. A
+  watermark is therefore a successor progress assertion with a greater
+  revision and unbroken lineage over the selected population, never a bare
+  number; what a watermark's position in the line order governs is the
+  frontier the records after it are checked against.
 
 ### Ordering
 
@@ -182,8 +192,9 @@ The event input maps to one ordered progress history:
   line, a record candidate of either kind whose anchor is at or below the
   current frontier in that frontier's clock family is refused, and so is a
   record whose anchor is of another clock family. Records before the first
-  watermark line are part of the request document's history and are not
-  compared with a frontier.
+  watermark line are not compared with a frontier. A record after a
+  watermark line whose anchor is above the current frontier admits when it is
+  the record of a population member that no earlier line delivered.
 - Order is the line order. It is never inferred from timestamps, readings or
   arrival, and the library adds no event or watermark at end of input.
 
@@ -249,8 +260,8 @@ binding history.
   admitted by the runtime against the selected association. **Each runtime
   watermark's progress document** is authenticated by `progress::read` as the
   admitted progress history states: the owner derives the successor document
-  from the records before the line and the line's boundary, state and
-  revision, and admits the supplied bytes only when they are that derivation.
+  from the qualified history and the line's boundary, state and revision, and
+  admits the supplied bytes only when they are that derivation.
   A watermark line's `inclusive_boundary` is admitted only when it equals the
   authenticated boundary.
 - The authentication is recomputation by the observation owner. No signature,
@@ -315,10 +326,11 @@ carried unchanged.
 | FR-014-AC-7 | `AdmittedProgress` and `AuthoritySelections` have no public constructor, field, `Default`, `Serialize` or `Deserialize` (a crate outside this one cannot build either); `binds` of admission A's selections over admission B's view of a different document is false; every accessor returns a borrow without allocating. | Test (TC-016) |
 | FR-014-AC-8 | The entry reads no file, standard input, environment or clock: admitting the same request and event bytes twice, in different working directories and environments, returns equal capabilities. | Test (TC-016) |
 | FR-014-AC-9 | An event input of two runtime event lines followed by one runtime watermark line, whose records are AC-1's two records, admits a view equal to AC-1's view and three steps in line order: two `AdmittedEvent`s whose `line`, `record`, `reading` and exact `inputs` bytes are the lines', and one `AdmittedWatermark` whose `view` equals `progress::read` of its document over both records with the line's boundary, state and revision and AC-1's document as predecessor, whose `assertion` is the document bytes and whose `inclusive_boundary` is the line's. | Test (TC-016) |
-| FR-014-AC-10 | An input mixing a record-candidate line, a runtime event line, a runtime watermark line and a later runtime event above the new frontier admits, with the record-candidate line contributing a record and no step; an input of record-candidate lines only admits a capability equal to AC-2's with `steps()` empty. | Test (TC-016) |
+| FR-014-AC-10 | Over a scope of three members whose records are anchored at `a < b < c`, an input of a record-candidate line for `a`, a runtime event line for `b`, a runtime watermark line with frontier `f` where `b ≤ f < c`, and a runtime event line for `c` admits: the record-candidate line contributes a record and no step, `steps()` is `[Event(2), Watermark(3), Event(4)]`, `qualified()` holds all three records, and the request's and the watermark's views each equal `progress::read` of their document over that three-record history; an input of record-candidate lines only admits a capability equal to AC-2's with `steps()` empty. | Test (TC-016) |
 | FR-014-AC-11 | After a watermark line with frontier `f`: a later record of either kind anchored at `f`, one anchored below `f`, and one anchored in another clock family each return `Event { line }` of that record with `ExpectedMismatch`; a later watermark with `inclusive_boundary` below `f` returns `ExpectedMismatch` at its line, while one equal to `f` (with a greater revision) admits; a watermark whose `inclusive_boundary` differs from its `boundary`'s inclusive upper value returns `ExpectedMismatch` at its line. Each returns no capability. | Test (TC-016) |
 | FR-014-AC-12 | A watermark whose `progress_document` has one byte changed, was derived at the predecessor's revision, names another predecessor, or was derived from the history without the preceding event's record returns `Event { line }` of the watermark with `cause` `Authority` equal to the error `progress::read` returns for the same bytes and context, and no capability. | Test (TC-016) |
 | FR-014-AC-13 | On the third line, a runtime event whose `record` names `filament.observation.record/v2`, whose `reading` is `"18446744073709551616"` or `"01"`, or whose `inputs` is a JSON object, and a runtime watermark lacking `progress_document` or with `inclusive_boundary` `"+5"`, each return `Event { line: 3 }` with `ContractMismatch`, `InvalidSelection`, `InvalidSelection`, `InvalidSelection`, `InvalidSelection` or `InvalidSelection` respectively; a line naming `filament.observation.rt-event/v2` returns `ContractMismatch`. | Test (TC-016) |
+| FR-014-AC-14 | In AC-10's input, with `limits.max_records` at least 4, appending a fifth line that repeats the runtime event for `c` (above `f`, same record and identity) returns `Qualification` with `admit`'s `Refused` `DuplicateRecord` outcome unchanged, and replacing the last line by a runtime event above `f` whose record is not a member of the scope returns `Qualification` with `admit`'s `Incomplete` `MissingMembership` outcome unchanged; dropping the last line, so the member `c` has no record, returns `Qualification` with `admit`'s `Refused` `MemberRecordMismatch` outcome unchanged. Each returns no capability. | Test (TC-016) |
 
 ## Dependencies
 
