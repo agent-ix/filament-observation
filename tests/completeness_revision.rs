@@ -78,3 +78,16 @@ fn revision_is_bounded_and_independent_of_progress_admission() {
     // after a revision returns equal capabilities.
     panic!("{MISSING}");
 }
+
+#[trace("TC-015", "FR-013-AC-7")]
+#[test]
+#[ignore = "QSL-2327: revise carry-forward coverage not implemented yet"]
+fn an_omitted_prior_held_member_is_carried_end_to_end() {
+    // prior = derive(Selection::new(.., through 100, members 0,30,60,90)), read.
+    // Successor history admits 0,30,60,90,120; Selection through 140 lists
+    // 0,60,90,120 and omits 30. derive(selection) -> ExpectedMismatch;
+    // revise -> five facts in population order, 30 = prior's fact with origin
+    // carried, state Complete; read_revised admits the bytes. Omitting 120
+    // (not held by prior) instead -> Revision UncoveredMember naming it.
+    panic!("{MISSING}");
+}

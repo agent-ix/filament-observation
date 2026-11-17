@@ -83,17 +83,20 @@ which members are held through a boundary and closes no scope (FR-008).
 - `context`: the successor's `Context` over its own admitted history, naming
   `prior`'s document as predecessor, with a revision greater than `prior`'s.
 - `selection`: the successor's boundary and per-member facts over the
-  successor history's required population, as `derive` takes them.
+  successor history's required population minus the members it carries
+  forward from `prior` (below).
 - `limits`: the owner limits.
 
 ## Outputs
 
 On acceptance, the revised document (`basis` `revised`). Its `boundary` is
-the selection's. Its facts are the **revised population**: first the
-selection's facts in the selection's order, each with the merged status below
-and `origin` `selected`; then each fact `prior` holds for a member the
-selection does not list, in `prior`'s order, with `prior`'s status and
-observation identity and `origin` `carried`. Its `state` is FR-287's aggregate
+the selection's. Its facts are the **revised population**: first one fact per
+member of the successor's required population, in that population's order,
+either the selection's fact with the merged status below and `origin`
+`selected`, or, for a carried member, `prior`'s fact with `origin` `carried`;
+then each fact `prior` holds for a member outside the successor's required
+population, in `prior`'s order, with `prior`'s status and observation identity
+and `origin` `carried`. Its `state` is FR-287's aggregate
 over the revised population. On refusal, one `RevisionError` and no document.
 
 ## Behavior
@@ -112,8 +115,17 @@ over the revised population. On refusal, one `RevisionError` and no document.
   assessed over the admitted history its own request carries, so its scope
   and population identity are its own; its subject SHALL still match its own
   qualified history, as for every owner document.
-- The successor's selection SHALL pass every check `derive` applies to it, and
-  its boundary SHALL be of `prior`'s clock family.
+- A **carried member** is a member of the successor's required population
+  that the selection omits and `prior` holds. Its fact is `prior`'s, taken
+  unchanged (status and observation identity, which need not name a record of
+  the successor history), and it counts toward coverage of the successor
+  population.
+- The successor's selection SHALL pass every check `derive` applies to it,
+  except that `revise` runs `derive`'s exact-coverage check over the
+  successor's required population minus the carried members: the selection
+  lists every other member, in the population's order with the carried members
+  skipped. `derive` itself keeps exact coverage of the whole required
+  population. The selection's boundary SHALL be of `prior`'s clock family.
 - The revised document's authority is recomputation by this owner. No caller
   flag, signature or transport attribute marks a document revised. A revised
   document SHALL be authenticated only by `read_revised`, which recomputes
@@ -138,11 +150,14 @@ owner's rule.
    `derive` gives the selection's own facts is `Incomplete`:
    `CompleteRegressed`. An `Incomplete` successor of an `Incomplete` prior,
    and a `Complete` or `Contradicted` successor of any prior, pass this check.
-3. **Uncovered member.** In the selection's order, a member the selection
-   lists `Available` or `Contradicted`, placed at or before `prior`'s boundary,
-   that `prior` does not hold: `UncoveredMember` naming the first such member.
+3. **Uncovered member.** In the population's order, a member of the
+   successor's required population that the selection omits and `prior` does
+   not hold, wherever it is placed: it can be neither carried nor assessed.
+   Then, in the selection's order, a member the selection lists `Available` or `Contradicted`, placed at or before `prior`'s boundary,
+   that `prior` does not hold. Either refuses `UncoveredMember` naming the
+   first such member.
    A member `prior` holds `Incomplete` and the selection supplies is accepted,
-   and so is any member placed after `prior`'s boundary.
+   and so is any listed member placed after `prior`'s boundary.
 4. **Changed observation.** In the selection's order, a member both `prior`
    and the selection hold `Available` with different observation identities:
    `MemberObservationChanged` naming the first such member. A different record
@@ -189,13 +204,13 @@ unchanged.
 | --- | --- | --- |
 | the context names no predecessor, a predecessor whose identity is not `prior`'s, of another contract or of another authority | `Prior` | `Authority` `PredecessorMismatch` |
 | the context's revision is not greater than `prior`'s | `Prior` | `Authority` `RevisionMismatch` |
-| any refusal `derive` returns for the context and selection | `Selection` | `Authority` with that error unchanged |
+| any refusal `derive` returns for the context and selection, its coverage check run without the carried members | `Selection` | `Authority` with that error unchanged |
 | the boundary fails FR-289's mapping | `Selection` | `Authority` `InvalidSelection` |
 | the boundary is of another clock family than `prior`'s | `Selection` | `Authority` `ExpectedMismatch` |
 | a member is placed in another clock family than the boundary | `Selection` | `Authority` `ExpectedMismatch` |
 | the selection's boundary is below `prior`'s | `Revision` | `Contradiction` `BoundaryRegressed` |
 | `prior` is `Complete` and the selection's own state is `Incomplete` | `Revision` | `Contradiction` `CompleteRegressed` |
-| an `Available` or `Contradicted` member at or before `prior`'s boundary that `prior` does not hold | `Revision` | `Contradiction` `UncoveredMember` |
+| an omitted member of the successor population that `prior` does not hold, or an `Available` or `Contradicted` member at or before `prior`'s boundary that `prior` does not hold | `Revision` | `Contradiction` `UncoveredMember` |
 | a member held `Available` by both with different observation identities | `Revision` | `Contradiction` `MemberObservationChanged` |
 | the revised population, or the encoded document, exceeds an effective limit | `Document` | `Authority` `ResourceIncomplete` |
 | `read_revised` bytes that are not the recomputed document (one byte changed, non-canonical, another basis, another prior or selection) | `Document` | `Authority` with the strict reader's error unchanged |
@@ -210,6 +225,7 @@ unchanged.
 | FR-013-AC-4 | A context with no predecessor, with another document as predecessor, or with `prior`'s document under another authority refuses `Prior` `PredecessorMismatch`; a revision equal to `prior`'s refuses `Prior` `RevisionMismatch`; a successor over another admitted history (other scope and population identity) is accepted; a successor boundary of another clock family refuses `Selection` `ExpectedMismatch`; a successor selection that fails a `derive` check refuses `Selection` with `derive`'s error. | Test (TC-015) |
 | FR-013-AC-5 | `read_revised` of `revise`'s bytes returns a view equal to the revised document; the same bytes with one byte changed, re-encoded non-canonically, or read against another `prior` refuse at `Document` with the strict reader's error; `read` of the revised bytes refuses `ExpectedMismatch` and `read_revised` of a derived document refuses at `Document`; revising twice from the same inputs gives equal bytes. | Test (TC-015) |
 | FR-013-AC-6 | A revised population of one entry over `max_population_entries` refuses `Document` `ResourceIncomplete`; `revise` takes no progress view, and admitting progress through `admit_progress` over the same history before and after a revision returns equal capabilities. | Test (TC-015) |
+| FR-013-AC-7 | End to end: `prior` is `derive`d from `Selection::new` over members stamped 0, 30, 60 and 90, `Complete` through 100, and read back. The successor history admits members stamped 0, 30, 60, 90 and 120, and its `Selection` (through 140) lists the members at 0, 60, 90 and 120 and omits the one at 30. `derive` of that selection refuses `ExpectedMismatch` because it does not cover the population. `revise` accepts it: the revised population lists all five members in population order, the one at 30 with `prior`'s fact and `origin` `carried`, the state is `Complete`, and `read_revised` admits the bytes. The same successor omitting the member at 120, which `prior` does not hold, refuses `Revision` `UncoveredMember` naming it. | Test (TC-015) |
 
 ## Dependencies
 
