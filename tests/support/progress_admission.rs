@@ -781,6 +781,37 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
         Limits::owner_max(),
     )
     .expect("derive valid progress document from empty history");
+    let empty_candidate = authority::progress::read(
+        empty_document.bytes(),
+        Context::new(
+            History::batch(&empty_history),
+            &owner(),
+            &empty_subject,
+            2,
+            Some(&empty_predecessor),
+        ),
+        &progress_selection(boundary),
+        Limits::owner_max(),
+    )
+    .expect("strict-read the valid empty-history candidate in its own context");
+    let full_history = authority::progress::read(
+        initial.bytes(),
+        Context::new(
+            History::batch(&qualified),
+            &owner(),
+            &subject(&qualified),
+            1,
+            None,
+        ),
+        &progress_selection(boundary),
+        Limits::owner_max(),
+    )
+    .expect("strict-read the full-history predecessor");
+    assert_ne!(
+        empty_candidate.payload().authority_identity(),
+        full_history.payload().authority_identity(),
+        "the empty-history candidate commits the empty-history authority form"
+    );
     assert_watermark_refusal_matches_read(
         &request,
         &qualified,
