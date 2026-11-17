@@ -113,8 +113,11 @@ fn runtime_event_and_watermark_lines_admit_ordered_steps() {
 #[test]
 #[ignore = "QSL-1867: mixed record-candidate and runtime lines not implemented yet"]
 fn mixed_line_kinds_admit_and_record_lines_alone_admit_as_before() {
-    // record-candidate, rt-event, rt-watermark, rt-event above the new
-    // frontier admits; the record-candidate line adds a record and no step.
+    // Scope of three members anchored a < b < c: record-candidate(a),
+    // rt-event(b), rt-watermark with frontier f (b <= f < c), rt-event(c)
+    // admits; steps() == [Event(2), Watermark(3), Event(4)]; qualified()
+    // holds all three records; the request's and the watermark's views equal
+    // progress::read of their documents over that three-record history.
     // Record-candidate lines only admit AC-2's capability with steps() empty.
     panic!("{MISSING}");
 }
@@ -134,10 +137,11 @@ fn records_at_or_below_the_frontier_and_regressing_watermarks_refuse() {
 #[trace("TC-016", "FR-014-AC-12")]
 #[test]
 #[ignore = "QSL-1867: watermark progress-document authentication not implemented yet"]
-fn a_watermark_document_not_derived_from_the_prefix_refuses_at_its_line() {
-    // One changed byte, predecessor's revision, other predecessor, preceding
-    // event's record dropped: Event{line} of the watermark with the error
-    // progress::read returns for the same bytes and context.
+fn a_watermark_document_not_derived_from_its_inputs_refuses_at_its_line() {
+    // One changed byte, predecessor's revision, other predecessor, derived
+    // from the empty history, boundary one tick above the line's:
+    // Event{line} of the watermark with the error progress::read returns
+    // for the same bytes and context.
     panic!("{MISSING}");
 }
 
@@ -150,5 +154,17 @@ fn each_runtime_line_defect_refuses_at_its_line() {
     // JSON object, watermark without progress_document, inclusive_boundary
     // "+5" -> InvalidSelection; contract filament.observation.rt-event/v2 ->
     // ContractMismatch. All Event{line: 3}.
+    panic!("{MISSING}");
+}
+
+#[trace("TC-016", "FR-014-AC-14")]
+#[test]
+#[ignore = "QSL-1867: qualification of post-watermark records not implemented yet"]
+fn post_watermark_records_outside_the_population_refuse_at_qualification() {
+    // AC-10's input with max_records >= 4: a fifth line repeating rt-event(c)
+    // -> Qualification Refused DuplicateRecord; instead a fifth line that is an
+    // rt-event above f for a non-member record (c kept) -> Qualification
+    // Incomplete with sole reason MissingMembership; the last line dropped -> Qualification Refused
+    // MemberRecordMismatch. Outcomes carried unchanged, no capability.
     panic!("{MISSING}");
 }

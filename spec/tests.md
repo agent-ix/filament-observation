@@ -53,7 +53,7 @@ relationships:
 | FR-011 | FR-011-AC-1..FR-011-AC-7 | TC-011 | ✅ complete |
 | FR-012 | FR-012-AC-1..FR-012-AC-2 | TC-014 | ✅ complete |
 | FR-013 | FR-013-AC-1..FR-013-AC-7 | TC-015 | 🚧 specified, stubs ignored |
-| FR-014 | FR-014-AC-1..FR-014-AC-13 | TC-016 | 🚧 specified, stubs ignored |
+| FR-014 | FR-014-AC-1..FR-014-AC-14 | TC-016 | 🚧 specified, stubs ignored |
 
 ## Non-Functional Requirement Coverage
 
@@ -82,7 +82,7 @@ relationships:
 | TC-013 | Audit bounded iteration and allocation | Static | P0 | NFR-003-AC-1 | ✅ complete |
 | TC-014 | Export the owned test fixture | Unit | P2 | FR-012-AC-1..FR-012-AC-2 | ✅ complete |
 | TC-015 | Revise a completeness assertion monotonically across revisions | Integration | P0 | FR-013-AC-1..FR-013-AC-7 | 🚧 specified, stubs ignored |
-| TC-016 | Admit the progress view and authority selections from request and event input | Integration | P0 | FR-014-AC-1..FR-014-AC-13 | 🚧 specified, stubs ignored |
+| TC-016 | Admit the progress view and authority selections from request and event input | Integration | P0 | FR-014-AC-1..FR-014-AC-14 | 🚧 specified, stubs ignored |
 
 ## Option Permutation Matrix
 
