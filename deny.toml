@@ -8,6 +8,7 @@ allow = [
 # Keep the registry dependency allow-list permissive-only.
 exceptions = [
     { allow = ["AGPL-3.0-or-later"], crate = "quire-canonical" },
+    { allow = ["AGPL-3.0-or-later"], crate = "filament-exact" },
     { allow = ["AGPL-3.0-or-later"], crate = "filament-observation" },
 ]
 confidence-threshold = 0.9
@@ -24,6 +25,7 @@ unknown-registry = "deny"
 unknown-git = "deny"
 # Both git dependencies are pinned to a tag.
 allow-git = [
+    "https://github.com/agent-ix/filament-exact",
     "https://github.com/agent-ix/ix-trace-rs",
     "https://github.com/agent-ix/quire-canonical",
 ]

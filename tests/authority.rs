@@ -3,6 +3,10 @@
 
 //! TC-004: canonical observation-owner artifacts.
 
+#[path = "support/completeness_revision.rs"]
+mod completeness_revision;
+#[path = "support/progress_admission.rs"]
+mod progress_admission;
 mod support;
 
 use filament_exact::{NodeKey, Origin, PathSegment, Role};

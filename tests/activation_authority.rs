@@ -10,9 +10,9 @@ use filament_observation::authority::{
     TemporalBoundary,
 };
 use filament_observation::{
-    AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest, Identity,
-    Member, NATIVE_LINKED_PACKAGE_FORMAT, ObservationBinding, PackageSelection,
-    QualifiedObservation, ResourceLimits, ScopeKind, ScopeSelection, ValueState, Visibility, admit,
+    admit, AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest,
+    Identity, Member, ObservationBinding, PackageSelection, QualifiedObservation, ResourceLimits,
+    ScopeKind, ScopeSelection, ValueState, Visibility, NATIVE_LINKED_PACKAGE_FORMAT,
 };
 use ix_trace_rs::trace;
 

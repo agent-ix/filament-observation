@@ -506,7 +506,7 @@ impl Contradiction {
 #[error("completeness revision refused at {stage:?}: {cause:?}")]
 pub struct RevisionError {
     stage: RevisionStage,
-    cause: RevisionCause,
+    cause: Box<RevisionCause>,
 }
 
 impl RevisionError {
@@ -518,8 +518,8 @@ impl RevisionError {
 
     /// Returns the exact owner error or monotonicity contradiction.
     #[must_use]
-    pub const fn cause(&self) -> &RevisionCause {
-        &self.cause
+    pub fn cause(&self) -> &RevisionCause {
+        self.cause.as_ref()
     }
 }
 
@@ -660,13 +660,15 @@ pub fn revise(
         selection.boundary,
         coverage_facts,
     );
-    let selected_document = derive(validation_context, &coverage_selection, limits)
+    let mut validation_limits = limits;
+    validation_limits.max_population_entries = required_members.len();
+    let selected_document = derive(validation_context, &coverage_selection, validation_limits)
         .map_err(|error| revision_authority(RevisionStage::Selection, error))?;
     let selected_view = read(
         selected_document.bytes(),
         validation_context,
         &coverage_selection,
-        limits,
+        validation_limits,
     )
     .map_err(|error| revision_authority(RevisionStage::Selection, error))?;
     if prior.payload().state == State::Complete
@@ -943,14 +945,14 @@ fn anchor_coordinate(anchor: crate::Anchor, boundary: TemporalBoundary) -> Optio
 fn revision_authority(stage: RevisionStage, error: Error) -> RevisionError {
     RevisionError {
         stage,
-        cause: RevisionCause::Authority(error),
+        cause: Box::new(RevisionCause::Authority(error)),
     }
 }
 
 fn revision_contradiction(contradiction: Contradiction) -> RevisionError {
     RevisionError {
         stage: RevisionStage::Revision,
-        cause: RevisionCause::Contradiction(contradiction),
+        cause: Box::new(RevisionCause::Contradiction(contradiction)),
     }
 }
 

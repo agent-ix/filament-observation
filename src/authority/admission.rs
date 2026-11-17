@@ -67,7 +67,7 @@ pub enum AdmissionCause {
 #[error("progress admission refused at {stage:?}: {cause:?}")]
 pub struct AdmissionError {
     stage: AdmissionStage,
-    cause: AdmissionCause,
+    cause: Box<AdmissionCause>,
 }
 
 impl AdmissionError {
@@ -79,8 +79,8 @@ impl AdmissionError {
 
     /// Returns the exact owner or qualification cause.
     #[must_use]
-    pub const fn cause(&self) -> &AdmissionCause {
-        &self.cause
+    pub fn cause(&self) -> &AdmissionCause {
+        self.cause.as_ref()
     }
 }
 
@@ -267,7 +267,7 @@ pub fn admit_progress(
     let effective = limits.effective();
     super::common::preflight(request_bytes, effective).map_err(|error| AdmissionError {
         stage: AdmissionStage::Request,
-        cause: AdmissionCause::Authority(error),
+        cause: Box::new(AdmissionCause::Authority(error)),
     })?;
     if let Some(bytes) = event_bytes {
         if bytes.len() > effective.max_input_bytes {
@@ -296,7 +296,7 @@ pub fn admit_progress(
     let producer = crate::StaticProducerBundle::admit_json(request.producer.get().as_bytes())
         .map_err(|cause| AdmissionError {
             stage: AdmissionStage::Producer,
-            cause: AdmissionCause::Producer(cause),
+            cause: Box::new(AdmissionCause::Producer(cause)),
         })?;
     let package: PackageWire = decode(request.package.get().as_bytes(), AdmissionStage::Request)?;
     let binding: BindingWire = decode(request.binding.get().as_bytes(), AdmissionStage::Request)?;
@@ -338,18 +338,17 @@ pub fn admit_progress(
             "package digest is not lowercase SHA-256",
         )
     })?;
-    let producer = producer;
     let expected_subject =
         subject_from_wire(expected_subject_wire, &producer).map_err(|cause| AdmissionError {
             stage: AdmissionStage::Request,
-            cause,
+            cause: Box::new(cause),
         })?;
     let relationships = relationship_wires
         .into_iter()
         .map(|wire| {
             relationship_from_wire(wire, &producer).map_err(|cause| AdmissionError {
                 stage: AdmissionStage::Request,
-                cause,
+                cause: Box::new(cause),
             })
         })
         .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -358,18 +357,18 @@ pub fn admit_progress(
         .map(|wire| {
             required_relationship_from_wire(wire, &producer).map_err(|cause| AdmissionError {
                 stage: AdmissionStage::Request,
-                cause,
+                cause: Box::new(cause),
             })
         })
         .collect::<std::result::Result<Vec<_>, _>>()?;
     let scope = scope_from_wire(scope_wire).map_err(|cause| AdmissionError {
         stage: AdmissionStage::Request,
-        cause,
+        cause: Box::new(cause),
     })?;
     let binding_subject_kind =
         crate::SubjectKind::new(binding.subject_kind).map_err(|_| AdmissionError {
             stage: AdmissionStage::Request,
-            cause: invalid_cause("binding subject kind is empty"),
+            cause: Box::new(invalid_cause("binding subject kind is empty")),
         })?;
     let binding = crate::ObservationBinding {
         identity: Identity::new(binding.identity),
@@ -389,7 +388,7 @@ pub fn admit_progress(
             .map(|wire| {
                 record_from_wire(wire, &producer).map_err(|cause| AdmissionError {
                     stage: AdmissionStage::Request,
-                    cause,
+                    cause: Box::new(cause),
                 })
             })
             .collect::<std::result::Result<Vec<_>, _>>()?;
@@ -447,7 +446,7 @@ pub fn admit_progress(
     let (progress_selection, clock_selection, initial_boundary) =
         progress_selection_from_wire(progress_wire).map_err(|cause| AdmissionError {
             stage: AdmissionStage::Request,
-            cause,
+            cause: Box::new(cause),
         })?;
     let request_for_qualification = request_value.clone();
     let initial_records = request_value.records[..initial_record_count].to_vec();
@@ -468,7 +467,7 @@ pub fn admit_progress(
             super::common::document_from_bytes(super::progress::CONTRACT, bytes.as_bytes(), limits)
                 .map_err(|error| AdmissionError {
                     stage: AdmissionStage::Progress,
-                    cause: AdmissionCause::Authority(error),
+                    cause: Box::new(AdmissionCause::Authority(error)),
                 })
         })
         .transpose()?;
@@ -487,7 +486,7 @@ pub fn admit_progress(
     )
     .map_err(|error| AdmissionError {
         stage: AdmissionStage::Progress,
-        cause: AdmissionCause::Authority(error),
+        cause: Box::new(AdmissionCause::Authority(error)),
     })?;
     if !progress_view
         .payload()
@@ -541,7 +540,7 @@ pub fn admit_progress(
                 let boundary =
                     boundary_from_wire(boundary_wire.clone()).map_err(|cause| AdmissionError {
                         stage: AdmissionStage::Event { line },
-                        cause,
+                        cause: Box::new(cause),
                     })?;
                 let inclusive_boundary =
                     parse_decimal(&wire.inclusive_boundary, true).ok_or_else(|| {
@@ -587,7 +586,7 @@ pub fn admit_progress(
                     progress_selection_from_wire(watermark_progress).map_err(|cause| {
                         AdmissionError {
                             stage: AdmissionStage::Event { line },
-                            cause,
+                            cause: Box::new(cause),
                         }
                     })?;
                 let observation =
@@ -604,7 +603,7 @@ pub fn admit_progress(
                 let view = super::progress::read(&assertion, context, &selection, limits).map_err(
                     |error| AdmissionError {
                         stage: AdmissionStage::Event { line },
-                        cause: AdmissionCause::Authority(error),
+                        cause: Box::new(AdmissionCause::Authority(error)),
                     },
                 )?;
                 steps.push(AdmittedStep::Watermark(AdmittedWatermark {
@@ -1006,7 +1005,11 @@ impl RecordCandidateLineWire {
 fn authority_error(stage: AdmissionStage, code: ErrorCode, detail: &'static str) -> AdmissionError {
     AdmissionError {
         stage,
-        cause: AdmissionCause::Authority(Error::new(code, detail, super::Usage::default())),
+        cause: Box::new(AdmissionCause::Authority(Error::new(
+            code,
+            detail,
+            super::Usage::default(),
+        ))),
     }
 }
 
@@ -1529,7 +1532,7 @@ fn qualify_with_records(
         crate::AdmissionOutcome::Available { observation } => Ok(*observation),
         other => Err(AdmissionError {
             stage: AdmissionStage::Qualification,
-            cause: AdmissionCause::Observation(other),
+            cause: Box::new(AdmissionCause::Observation(other)),
         }),
     }
 }
@@ -1733,7 +1736,7 @@ fn decode_event_input(
         let line = u64::try_from(index + 1).unwrap_or(u64::MAX);
         super::common::preflight(raw_line, limits).map_err(|error| AdmissionError {
             stage: AdmissionStage::Event { line },
-            cause: AdmissionCause::Authority(error),
+            cause: Box::new(AdmissionCause::Authority(error)),
         })?;
         let value: serde_json::Value = serde_json::from_slice(raw_line).map_err(|_| {
             authority_error(
@@ -1791,7 +1794,7 @@ fn decode_event_input(
                     record_from_wire(record_line.into_record(), producer).map_err(|cause| {
                         AdmissionError {
                             stage: AdmissionStage::Event { line },
-                            cause,
+                            cause: Box::new(cause),
                         }
                     })?;
                 push_existing_event_record(&mut records, record.clone(), max_records, line)?;
@@ -1839,7 +1842,7 @@ fn event_record(
 ) -> std::result::Result<AdmittedRecord, AdmissionError> {
     let record = record_from_wire(wire, producer).map_err(|cause| AdmissionError {
         stage: AdmissionStage::Event { line },
-        cause,
+        cause: Box::new(cause),
     })?;
     push_existing_event_record(records, record.clone(), max_records, line)?;
     Ok(record)
