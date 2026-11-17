@@ -450,16 +450,9 @@ pub fn admit_progress(
         })?;
     let request_for_qualification = request_value.clone();
     let initial_records = request_value.records[..initial_record_count].to_vec();
+    let has_pending_lines = !pending_lines.is_empty();
     let initial_observation =
         qualify_with_records(request_for_qualification.clone(), initial_records)?;
-    let final_observation = if pending_lines.is_empty() {
-        initial_observation.clone()
-    } else {
-        qualify_with_records(
-            request_for_qualification.clone(),
-            request_value.records.clone(),
-        )?
-    };
     let predecessor = request
         .predecessor_document
         .as_deref()
@@ -617,6 +610,11 @@ pub fn admit_progress(
             }
         }
     }
+    let final_observation = if has_pending_lines {
+        qualify_with_records(request_for_qualification, prefix_records)?
+    } else {
+        initial_observation
+    };
     let selections = AuthoritySelections {
         authority,
         subject,
