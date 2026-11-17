@@ -613,7 +613,13 @@ fn progress_admission_request_wire(
             qualified
                 .records()
                 .iter()
-                .map(record_candidate_wire)
+                .map(|record| {
+                    let mut wire = record_candidate_wire(record);
+                    wire.as_object_mut()
+                        .expect("record candidate is an object")
+                        .remove("contract");
+                    wire
+                })
                 .collect(),
         );
     }

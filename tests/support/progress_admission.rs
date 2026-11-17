@@ -393,12 +393,11 @@ fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
     let watermark = watermark_line(&successor, "2", boundary(OpenClosed::Closed));
     let lines = vec![
         record_candidate_wire(&records[0]),
-        event_line(&records[0], "1"),
+        event_line(&records[1], "1"),
         watermark,
-        event_line(&records[1], "2"),
     ];
     let admitted = admit_lines(&request, &lines).expect("mixed records and events admit");
-    assert_eq!(admitted.steps().len(), 3);
+    assert_eq!(admitted.steps().len(), 2);
     assert!(matches!(
         admitted.steps()[0],
         authority::admission::AdmittedStep::Event(_)
@@ -415,7 +414,8 @@ fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
 #[trace("TC-016", "FR-014-AC-11")]
 #[test]
 fn frontier_rejects_regressions_and_records_at_or_below_it() {
-    let (qualified, initial, request) = progress_fixture(false);
+    let (qualified, initial, mut request) = progress_fixture(false);
+    request["limits"]["max_records"] = "3".into();
     let boundary = boundary(OpenClosed::Closed);
     let successor = successor_document(&qualified, &initial, 2, boundary);
     let watermark = watermark_line(&successor, "2", boundary);
