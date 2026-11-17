@@ -1600,80 +1600,6 @@ fn invalid_error(stage: AdmissionStage, detail: &'static str) -> AdmissionError 
     authority_error(stage, ErrorCode::InvalidSelection, detail)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use ix_trace_rs::trace;
-
-    #[trace("TC-016", "FR-014-AC-13")]
-    #[test]
-    fn canonical_decimal_parser_rejects_noncanonical_and_overflow_values() {
-        assert_eq!(parse_decimal::<u64>("0", false), Some(0));
-        assert_eq!(
-            parse_decimal::<u64>("18446744073709551615", false),
-            Some(u64::MAX)
-        );
-        assert_eq!(parse_decimal::<u64>("18446744073709551616", false), None);
-        assert_eq!(parse_decimal::<u64>("01", false), None);
-        assert_eq!(parse_decimal::<i128>("-1", true), Some(-1));
-        assert_eq!(parse_decimal::<i128>("-0", true), None);
-        assert_eq!(parse_decimal::<i128>("+1", true), None);
-    }
-
-    #[trace("TC-016", "FR-014-AC-11")]
-    #[test]
-    fn watermark_boundary_order_is_family_local_and_inclusive() {
-        let at_ten = TemporalBoundary::EventPosition {
-            lower: 0,
-            upper_inclusive: 10,
-            carrier_end_exclusive: 11,
-            watermark: 11,
-        };
-        let at_eleven = TemporalBoundary::EventPosition {
-            lower: 0,
-            upper_inclusive: 11,
-            carrier_end_exclusive: 12,
-            watermark: 12,
-        };
-        let other_family = TemporalBoundary::FixedSample {
-            lower: 0,
-            upper_inclusive: 11,
-            carrier_end_exclusive: 12,
-            watermark: 12,
-        };
-        assert!(boundary_is_at_least(at_ten, at_ten));
-        assert!(boundary_is_at_least(at_eleven, at_ten));
-        assert!(!boundary_is_at_least(at_ten, at_eleven));
-        assert!(!boundary_is_at_least(other_family, at_ten));
-    }
-
-    #[trace("TC-016", "FR-014-AC-13")]
-    #[test]
-    fn every_admission_wire_schema_is_closed_and_selects_its_contract() {
-        for (bytes, contract) in [
-            (REQUEST_SCHEMA_BYTES, REQUEST_CONTRACT),
-            (RECORD_SCHEMA_BYTES, RECORD_CONTRACT),
-            (EVENT_SCHEMA_BYTES, EVENT_CONTRACT),
-            (WATERMARK_SCHEMA_BYTES, WATERMARK_CONTRACT),
-        ] {
-            let schema: serde_json::Value =
-                serde_json::from_slice(bytes).expect("admission schema is JSON");
-            assert_eq!(schema["additionalProperties"], false);
-            assert_eq!(schema["properties"]["contract"]["const"], contract);
-            let required = schema["required"]
-                .as_array()
-                .expect("admission schema has required fields");
-            let properties = schema["properties"]
-                .as_object()
-                .expect("admission schema has properties");
-            assert!(required.iter().all(|name| {
-                name.as_str()
-                    .is_some_and(|name| properties.contains_key(name))
-            }));
-        }
-    }
-}
-
 fn resource_limits_from_wire(
     wire: LimitsWire,
 ) -> std::result::Result<crate::ResourceLimits, AdmissionError> {
@@ -1861,4 +1787,78 @@ fn push_existing_event_record(
     }
     records.push(record);
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use ix_trace_rs::trace;
+
+    #[trace("TC-016", "FR-014-AC-13")]
+    #[test]
+    fn canonical_decimal_parser_rejects_noncanonical_and_overflow_values() {
+        assert_eq!(parse_decimal::<u64>("0", false), Some(0));
+        assert_eq!(
+            parse_decimal::<u64>("18446744073709551615", false),
+            Some(u64::MAX)
+        );
+        assert_eq!(parse_decimal::<u64>("18446744073709551616", false), None);
+        assert_eq!(parse_decimal::<u64>("01", false), None);
+        assert_eq!(parse_decimal::<i128>("-1", true), Some(-1));
+        assert_eq!(parse_decimal::<i128>("-0", true), None);
+        assert_eq!(parse_decimal::<i128>("+1", true), None);
+    }
+
+    #[trace("TC-016", "FR-014-AC-11")]
+    #[test]
+    fn watermark_boundary_order_is_family_local_and_inclusive() {
+        let at_ten = TemporalBoundary::EventPosition {
+            lower: 0,
+            upper_inclusive: 10,
+            carrier_end_exclusive: 11,
+            watermark: 11,
+        };
+        let at_eleven = TemporalBoundary::EventPosition {
+            lower: 0,
+            upper_inclusive: 11,
+            carrier_end_exclusive: 12,
+            watermark: 12,
+        };
+        let other_family = TemporalBoundary::FixedSample {
+            lower: 0,
+            upper_inclusive: 11,
+            carrier_end_exclusive: 12,
+            watermark: 12,
+        };
+        assert!(boundary_is_at_least(at_ten, at_ten));
+        assert!(boundary_is_at_least(at_eleven, at_ten));
+        assert!(!boundary_is_at_least(at_ten, at_eleven));
+        assert!(!boundary_is_at_least(other_family, at_ten));
+    }
+
+    #[trace("TC-016", "FR-014-AC-13")]
+    #[test]
+    fn every_admission_wire_schema_is_closed_and_selects_its_contract() {
+        for (bytes, contract) in [
+            (REQUEST_SCHEMA_BYTES, REQUEST_CONTRACT),
+            (RECORD_SCHEMA_BYTES, RECORD_CONTRACT),
+            (EVENT_SCHEMA_BYTES, EVENT_CONTRACT),
+            (WATERMARK_SCHEMA_BYTES, WATERMARK_CONTRACT),
+        ] {
+            let schema: serde_json::Value =
+                serde_json::from_slice(bytes).expect("admission schema is JSON");
+            assert_eq!(schema["additionalProperties"], false);
+            assert_eq!(schema["properties"]["contract"]["const"], contract);
+            let required = schema["required"]
+                .as_array()
+                .expect("admission schema has required fields");
+            let properties = schema["properties"]
+                .as_object()
+                .expect("admission schema has properties");
+            assert!(required.iter().all(|name| {
+                name.as_str()
+                    .is_some_and(|name| properties.contains_key(name))
+            }));
+        }
+    }
 }
