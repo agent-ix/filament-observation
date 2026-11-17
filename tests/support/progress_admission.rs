@@ -166,6 +166,47 @@ fn admit_raw_lines(
     )
 }
 
+fn assert_watermark_refusal_matches_read(
+    request: &serde_json::Value,
+    qualified: &QualifiedObservation,
+    predecessor: &authority::Document,
+    revision: u64,
+    boundary: TemporalBoundary,
+    watermark: serde_json::Value,
+) {
+    let document = watermark["progress_document"]
+        .as_str()
+        .expect("watermark document is text");
+    let expected = authority::progress::read(
+        document.as_bytes(),
+        Context::new(
+            History::batch(qualified),
+            &owner(),
+            &subject(qualified),
+            revision,
+            Some(predecessor),
+        ),
+        &progress_selection(boundary),
+        Limits::owner_max(),
+    )
+    .expect_err("mutated watermark must fail the strict reader");
+    let lines = [
+        record_candidate_wire(&qualified.records()[0]),
+        event_line(&qualified.records()[1], "1"),
+        watermark,
+        event_line(&qualified.records()[2], "2"),
+    ];
+    let error = admit_lines(request, &lines).expect_err("mutated watermark refuses");
+    assert_eq!(
+        error.stage(),
+        authority::admission::AdmissionStage::Event { line: 3 }
+    );
+    assert!(matches!(
+        error.cause(),
+        authority::admission::AdmissionCause::Authority(actual) if actual == &expected
+    ));
+}
+
 #[trace("TC-016", "FR-014-AC-1")]
 #[test]
 fn request_records_admit_the_view_and_borrowed_selections() {
@@ -635,10 +676,6 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
     let (qualified, initial, request) = three_record_progress_fixture();
     let boundary = three_record_boundary();
     let successor = successor_document(&qualified, &initial, 2, boundary);
-    let lines = vec![
-        record_candidate_wire(&qualified.records()[0]),
-        event_line(&qualified.records()[1], "1"),
-    ];
     let mut changed_bytes = watermark_line(&successor, "2", boundary);
     let mut document = changed_bytes["progress_document"]
         .as_str()
@@ -649,14 +686,96 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
     changed_bytes["progress_document"] = String::from_utf8(document)
         .expect("mutated document stays UTF-8")
         .into();
-    let mut changed = lines.clone();
-    changed.push(changed_bytes);
-    changed.push(event_line(&qualified.records()[2], "2"));
-    let error = admit_lines(&request, &changed)
-        .expect_err("watermark bytes not derived from the qualified history refuse");
-    assert_eq!(
-        error.stage(),
-        authority::admission::AdmissionStage::Event { line: 3 }
+    assert_watermark_refusal_matches_read(
+        &request,
+        &qualified,
+        &initial,
+        2,
+        boundary,
+        changed_bytes,
+    );
+
+    // The predecessor document itself is valid at revision 1, but a watermark
+    // cannot advance by presenting that same revision again.
+    assert_watermark_refusal_matches_read(
+        &request,
+        &qualified,
+        &initial,
+        1,
+        boundary,
+        watermark_line(&initial, "1", boundary),
+    );
+
+    let other_boundary = TemporalBoundary::TimestampedEvent {
+        lower_nanos: 0,
+        upper_inclusive_nanos: 19,
+        carrier_end_exclusive_nanos: 60,
+        watermark_nanos: 60,
+    };
+    let other_predecessor = authority::progress::derive(
+        Context::new(
+            History::batch(&qualified),
+            &owner(),
+            &subject(&qualified),
+            1,
+            None,
+        ),
+        &progress_selection(other_boundary),
+        Limits::owner_max(),
+    )
+    .expect("derive another valid revision-one predecessor");
+    let wrong_predecessor_document =
+        successor_document(&qualified, &other_predecessor, 2, boundary);
+    assert_watermark_refusal_matches_read(
+        &request,
+        &qualified,
+        &initial,
+        2,
+        boundary,
+        watermark_line(&wrong_predecessor_document, "2", boundary),
+    );
+
+    let mut empty_request = AdmissionRequest {
+        package: qualified.package().clone(),
+        producer: qualified.producer().clone(),
+        binding: qualified.binding().clone(),
+        expected_subject: qualified.expected_subject().clone(),
+        relationships: qualified.relationships().to_vec(),
+        required_relationships: qualified.required_relationships().to_vec(),
+        scope: qualified.scope().clone(),
+        records: Vec::new(),
+        limits: qualified.limits(),
+    };
+    empty_request.scope.members.clear();
+    empty_request.scope.required_member_identities.clear();
+    empty_request.limits.max_records = 0;
+    empty_request.limits.max_members = 0;
+    authority::population::assign_request_identities(&mut empty_request, Limits::owner_max())
+        .expect("seal empty-history membership");
+    let empty_history = match admit(empty_request) {
+        AdmissionOutcome::Available { observation } => observation,
+        other => panic!("empty-history fixture admission failed: {other:?}"),
+    };
+    let empty_subject = super::subject(&empty_history);
+    let empty_document = authority::progress::derive(
+        Context::new(
+            History::batch(&empty_history),
+            &owner(),
+            &empty_subject,
+            2,
+            None,
+        ),
+        &progress_selection(boundary),
+        Limits::owner_max(),
+    )
+    .expect("derive valid progress document from empty history");
+    assert_watermark_refusal_matches_read(
+        &request,
+        &qualified,
+        &initial,
+        2,
+        boundary,
+        watermark_line(&empty_document, "2", boundary),
     );
 
     let changed_boundary = TemporalBoundary::TimestampedEvent {
@@ -666,14 +785,13 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
         watermark_nanos: 60,
     };
     let boundary_document = successor_document(&qualified, &initial, 2, changed_boundary);
-    let mut boundary_lines = lines;
-    boundary_lines.push(watermark_line(&boundary_document, "2", boundary));
-    boundary_lines.push(event_line(&qualified.records()[2], "2"));
-    let error =
-        admit_lines(&request, &boundary_lines).expect_err("boundary plus one watermark refuses");
-    assert_eq!(
-        error.stage(),
-        authority::admission::AdmissionStage::Event { line: 3 }
+    assert_watermark_refusal_matches_read(
+        &request,
+        &qualified,
+        &initial,
+        2,
+        boundary,
+        watermark_line(&boundary_document, "2", boundary),
     );
 }
 
