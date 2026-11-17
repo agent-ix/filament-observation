@@ -682,7 +682,7 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
         AdmissionOutcome::Available { observation } => observation,
         other => panic!("empty history fixture admission failed: {other:?}"),
     };
-    let empty_subject = subject(&empty);
+    let empty_subject = super::subject(&empty);
     let empty_document = authority::progress::derive(
         Context::new(
             History::batch(&empty),
