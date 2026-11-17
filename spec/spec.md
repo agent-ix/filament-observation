@@ -83,7 +83,8 @@ consumer access (OB03), and the canonical owner-artifact boundary in
 through FR-009 extend that boundary with exact uncertainty, independent scope
 facts, and the I07 revisioned bundle. FR-010 owns repair-impact and incremental
 coordination without interpreting domain formulas. FR-011 owns finite closed-
-population query evaluation. FR-014 owns the one public entry that admits
+population query evaluation. FR-013 owns the monotone revision of a retained
+completeness assertion. FR-014 owns the one public entry that admits
 the authenticated progress view and opaque authority selections from request
 and event bytes. The non-functional requirements constrain retained
 state, reproducibility, and bounded repair. Integration coverage connects the
