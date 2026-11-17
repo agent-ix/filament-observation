@@ -52,7 +52,7 @@ impl NodeIdentity {
     /// Encodes a real structural node key under owner byte limits.
     pub fn from_key(key: NodeKey, limits: Limits) -> Result<Self> {
         Self::check_key_size(&key, limits)?;
-        let text = fsl_foundation::node_wire::node_key_to_text(&key).map_err(|_| {
+        let text = filament_exact::node_wire::node_key_to_text(&key).map_err(|_| {
             Error::new(
                 ErrorCode::InvalidSelection,
                 "node identity cannot be encoded",
@@ -66,14 +66,14 @@ impl NodeIdentity {
     /// Reads canonical structural node text, refusing malformed and noncanonical forms.
     pub fn from_text(text: &str, limits: Limits) -> Result<Self> {
         Self::check_size(text, limits)?;
-        let key = fsl_foundation::node_wire::node_key_from_text(text).map_err(|_| {
+        let key = filament_exact::node_wire::node_key_from_text(text).map_err(|_| {
             Error::new(
                 ErrorCode::InvalidSelection,
                 "node identity has invalid structural components",
                 Usage::default(),
             )
         })?;
-        let canonical = fsl_foundation::node_wire::node_key_to_text(&key).map_err(|_| {
+        let canonical = filament_exact::node_wire::node_key_to_text(&key).map_err(|_| {
             Error::new(
                 ErrorCode::InvalidSelection,
                 "node identity cannot be encoded",
@@ -999,7 +999,7 @@ mod tests {
             7,
         )
         .expect("key");
-        let text = fsl_foundation::node_wire::node_key_to_text(&key).expect("canonical text");
+        let text = filament_exact::node_wire::node_key_to_text(&key).expect("canonical text");
         let mut limits = Limits::owner_max();
         limits.max_string_bytes = text.len();
         NodeIdentity::check_key_size(&key, limits).expect("exact string bound");
