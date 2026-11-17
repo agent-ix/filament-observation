@@ -12,9 +12,9 @@ use filament_observation::authority::{
 };
 use filament_observation::{
     admit, AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest,
-    Identity, Member, ObservationBinding, PackageSelection, QualifiedObservation, Relationship,
-    RelationshipIdentity, ResourceLimits, ScopeKind, ScopeSelection, ValueState, Visibility,
-    NATIVE_LINKED_PACKAGE_FORMAT, PRODUCER_INTERFACE_VERSION,
+    Identity, Member, ObservationBinding, PackageSelection, QualifiedObservation, QualifiedSubject,
+    Relationship, RelationshipIdentity, ResourceLimits, ScopeKind, ScopeSelection, ValueState,
+    Visibility, NATIVE_LINKED_PACKAGE_FORMAT, PRODUCER_INTERFACE_VERSION,
 };
 use ix_trace_rs::trace;
 use proptest::prelude::*;
@@ -33,6 +33,47 @@ fn digest(value: u8) -> Digest {
 
 fn qualified() -> Box<QualifiedObservation> {
     qualified_with_window("window:O1")
+}
+
+fn qualified_with_two_records() -> Box<QualifiedObservation> {
+    let admitted = qualified();
+    let mut request = AdmissionRequest {
+        package: admitted.package().clone(),
+        producer: admitted.producer().clone(),
+        binding: admitted.binding().clone(),
+        expected_subject: admitted.expected_subject().clone(),
+        relationships: admitted.relationships().to_vec(),
+        required_relationships: admitted.required_relationships().to_vec(),
+        scope: admitted.scope().clone(),
+        records: admitted.records().to_vec(),
+        limits: admitted.limits(),
+    };
+    let mut next = request.records[0].clone();
+    next.identity = id("unsealed-record:O2");
+    next.anchor = Anchor::TimestampNanos(15);
+    next.event_time_nanos = 15;
+    next.ingestion_time_nanos = 16;
+    let identity = authority::observation::record_identity(&next, Limits::owner_max())
+        .expect("derive second record identity");
+    next.identity = identity.clone();
+    request.records.push(next);
+    request.limits.max_records = 2;
+    request.limits.max_members = 2;
+    request
+        .scope
+        .required_member_identities
+        .push(id("member:O2"));
+    request.scope.members.push(Member {
+        object_identity: id("member:O2"),
+        record_identity: identity,
+        anchor: Anchor::TimestampNanos(15),
+    });
+    authority::population::assign_request_identities(&mut request, Limits::owner_max())
+        .expect("seal second required member");
+    match admit(request) {
+        AdmissionOutcome::Available { observation } => observation,
+        other => panic!("two-record progress fixture admission failed: {other:?}"),
+    }
 }
 
 fn qualified_with_window(window_identity: &str) -> Box<QualifiedObservation> {
@@ -313,6 +354,266 @@ fn completeness_selection(record: &AdmittedRecord) -> authority::completeness::S
             authority::completeness::FactStatus::Available,
         )],
     )
+}
+
+fn digest_text(bytes: &[u8]) -> String {
+    const HEX: &[u8; 16] = b"0123456789abcdef";
+    let mut text = String::with_capacity(bytes.len() * 2);
+    for byte in bytes {
+        text.push(char::from(HEX[(byte >> 4) as usize]));
+        text.push(char::from(HEX[(byte & 0x0f) as usize]));
+    }
+    text
+}
+
+fn subject_wire(subject: &QualifiedSubject) -> serde_json::Value {
+    let authority = subject.authority();
+    serde_json::json!({
+        "authority": {
+            "bundleIdentity": authority.bundle_identity,
+            "bundleRevision": {
+                "namespace": authority.bundle_revision.namespace,
+                "value": authority.bundle_revision.value,
+            },
+            "digest": {
+                "label": authority.digest.label,
+                "value": authority.digest.value,
+            },
+        },
+        "kind": subject.kind().as_bytes(),
+        "identity": subject.identity().as_bytes(),
+    })
+}
+
+fn anchor_wire(anchor: Anchor) -> serde_json::Value {
+    match anchor {
+        Anchor::TimestampNanos(instant_nanos) => serde_json::json!({
+            "kind": "timestamp",
+            "instant_nanos": instant_nanos.to_string(),
+        }),
+        Anchor::EventPosition(position) => serde_json::json!({
+            "kind": "event-position",
+            "position": position.to_string(),
+        }),
+        Anchor::FixedSample {
+            index,
+            epoch_nanos,
+            period_nanos,
+        } => serde_json::json!({
+            "kind": "fixed-sample",
+            "index": index.to_string(),
+            "epoch_nanos": epoch_nanos.to_string(),
+            "period_nanos": period_nanos.to_string(),
+        }),
+    }
+}
+
+fn record_candidate_wire(record: &AdmittedRecord) -> serde_json::Value {
+    let value = match &record.value {
+        ValueState::Present {
+            value_type,
+            canonical_value,
+        } => serde_json::json!({
+            "state": "present",
+            "value_type": value_type.as_str(),
+            "canonical_value": canonical_value,
+        }),
+        ValueState::Missing => serde_json::json!({ "state": "missing" }),
+    };
+    let visibility = match record.visibility {
+        Visibility::Internal => "internal",
+        Visibility::External => "external",
+    };
+    serde_json::json!({
+        "contract": authority::admission::RECORD_CONTRACT,
+        "identity": record.identity.as_str(),
+        "binding_identity": record.binding_identity.as_str(),
+        "source_identity": record.source_identity.as_str(),
+        "schema_identity": record.schema_identity.as_str(),
+        "subject": subject_wire(&record.subject),
+        "signal_identity": record.signal_identity.as_str(),
+        "trigger_identity": record.trigger_identity.as_str(),
+        "unit": record.unit.as_str(),
+        "value": value,
+        "visibility": visibility,
+        "anchor": anchor_wire(record.anchor),
+        "event_time_nanos": record.event_time_nanos.to_string(),
+        "ingestion_time_nanos": record.ingestion_time_nanos.to_string(),
+        "causal_relationship_identity": record
+            .causal_relationship_identity
+            .as_ref()
+            .map(|identity| identity.as_bytes()),
+        "clock_identity": record.clock_identity.as_str(),
+        "clock_revision": record.clock_revision.as_str(),
+        "clock_uncertainty_nanos": record.clock_uncertainty_nanos.to_string(),
+    })
+}
+
+fn progress_admission_request_wire(
+    qualified: &QualifiedObservation,
+    progress_document: &authority::Document,
+    include_records: bool,
+) -> serde_json::Value {
+    let package = qualified.package();
+    let binding = qualified.binding();
+    let scope = qualified.scope();
+    let owner = owner();
+    let subject_selection = subject(qualified);
+    let range = match scope.range {
+        ClockRange::Timestamp {
+            start_nanos,
+            end_nanos,
+        } => serde_json::json!({
+            "clock_family": "timestamped-event",
+            "start_nanos": start_nanos.to_string(),
+            "end_nanos": end_nanos.to_string(),
+        }),
+        ClockRange::EventPosition {
+            start,
+            end_exclusive,
+        } => serde_json::json!({
+            "clock_family": "event-position",
+            "start": start.to_string(),
+            "end_exclusive": end_exclusive.to_string(),
+        }),
+        ClockRange::FixedSample {
+            start,
+            end_exclusive,
+            epoch_nanos,
+            period_nanos,
+        } => serde_json::json!({
+            "clock_family": "fixed-sample",
+            "start": start.to_string(),
+            "end_exclusive": end_exclusive.to_string(),
+            "epoch_nanos": epoch_nanos.to_string(),
+            "period_nanos": period_nanos.to_string(),
+        }),
+    };
+    let kind = match &scope.kind {
+        ScopeKind::Snapshot { snapshot_identity } => serde_json::json!({
+            "kind": "snapshot",
+            "snapshot_identity": snapshot_identity.as_str(),
+        }),
+        ScopeKind::Window { window_identity } => serde_json::json!({
+            "kind": "window",
+            "window_identity": window_identity.as_str(),
+        }),
+    };
+    let members = scope
+        .members
+        .iter()
+        .map(|member| {
+            serde_json::json!({
+                "object_identity": member.object_identity.as_str(),
+                "record_identity": member.record_identity.as_str(),
+                "anchor": anchor_wire(member.anchor),
+            })
+        })
+        .collect::<Vec<_>>();
+    let relationships = qualified
+        .relationships()
+        .iter()
+        .map(|relationship| {
+            serde_json::json!({
+                "declaration_identity": relationship.declaration_identity(),
+                "identity": relationship.identity().as_bytes(),
+                "source": subject_wire(relationship.source()),
+                "target": subject_wire(relationship.target()),
+            })
+        })
+        .collect::<Vec<_>>();
+    let mut request = serde_json::json!({
+        "contract": authority::admission::REQUEST_CONTRACT,
+        "package": {
+            "format": package.format,
+            "identity": package.identity.as_str(),
+            "revision": package.revision.as_str(),
+            "digest": digest_text(package.digest.as_bytes()),
+        },
+        "producer": serde_json::from_slice::<serde_json::Value>(
+            include_bytes!("fixtures/fcd-static-bundle-1.2.json")
+        ).expect("producer fixture is JSON"),
+        "binding": {
+            "identity": binding.identity.as_str(),
+            "source_identity": binding.source_identity.as_str(),
+            "schema_identity": binding.schema_identity.as_str(),
+            "signal_identity": binding.signal_identity.as_str(),
+            "trigger_identity": binding.trigger_identity.as_str(),
+            "unit": binding.unit.as_str(),
+            "subject_kind": binding.subject_kind.as_bytes(),
+            "required": binding.required,
+        },
+        "expected_subject": subject_wire(qualified.expected_subject()),
+        "relationships": relationships,
+        "required_relationships": [],
+        "scope": {
+            "population_identity": scope.population_identity.as_str(),
+            "membership_rule_identity": scope.membership_rule_identity.as_str(),
+            "membership_digest": digest_text(scope.membership_digest.as_bytes()),
+            "membership_document": String::from_utf8(scope.membership_document.clone()).expect("membership document is UTF-8"),
+            "required_member_identities": scope.required_member_identities.iter().map(Identity::as_str).collect::<Vec<_>>(),
+            "observation_sources": scope.observation_sources.iter().map(Identity::as_str).collect::<Vec<_>>(),
+            "completeness_dependencies": scope.completeness_dependencies.iter().map(Identity::as_str).collect::<Vec<_>>(),
+            "progress_dependencies": scope.progress_dependencies.iter().map(Identity::as_str).collect::<Vec<_>>(),
+            "clock_identity": scope.clock_identity.as_str(),
+            "clock_revision": scope.clock_revision.as_str(),
+            "membership_complete": scope.membership_complete,
+            "closure_identity": scope.closure_identity.as_ref().map(Identity::as_str),
+            "closure_digest": scope.closure_digest.as_ref().map(|digest| digest_text(digest.as_bytes())),
+            "kind": kind,
+            "range": range,
+            "members": members,
+        },
+        "limits": {
+            "max_records": qualified.limits().max_records.to_string(),
+            "max_members": qualified.limits().max_members.to_string(),
+            "max_relationships": qualified.limits().max_relationships.to_string(),
+            "max_required_relationships": qualified.limits().max_required_relationships.to_string(),
+        },
+        "authority": {
+            "definition_identity": owner.definition_identity.as_str(),
+            "definition_revision": owner.definition_revision.as_str(),
+            "definition_digest": digest_text(owner.definition_digest.as_bytes()),
+        },
+        "subject": {
+            "scope_identity": subject_selection.scope_identity.as_str(),
+            "population_identity": subject_selection.population_identity.as_str(),
+        },
+        "revision": "1",
+        "progress": {
+            "clock": {"clock_identity": "clock:event-time", "clock_revision": "1"},
+            "required_sources": ["source:payments"],
+            "boundary": {
+                "clock_family": "timestamped-event",
+                "lower_nanos": "0",
+                "upper_inclusive_nanos": "29",
+                "carrier_end_exclusive_nanos": "30",
+                "watermark_nanos": "30",
+            },
+            "state": "closed",
+            "captured_trigger_identity": "trigger:refund-request",
+            "cutoff": {
+                "clock_identity": "clock:event-time",
+                "clock_revision": "1",
+                "instant_nanos": "40",
+                "rule": "ingestion-time-at-or-before",
+                "rule_revision": "1",
+            },
+            "restoration_basis_identity": "restoration:O1",
+        },
+        "progress_document": String::from_utf8(progress_document.bytes().to_vec()).expect("progress document is UTF-8"),
+        "observation_source": "source:payments",
+    });
+    if include_records {
+        request["records"] = serde_json::Value::Array(
+            qualified
+                .records()
+                .iter()
+                .map(record_candidate_wire)
+                .collect(),
+        );
+    }
+    request
 }
 
 fn activation_proofs(
@@ -5496,6 +5797,110 @@ fn completeness_revision_refuses_omitted_members_not_held_by_prior() {
             authority::completeness::Contradiction::UncoveredMember { member_identity, .. }
         ) if member_identity == &id("member:O2")
     ));
+}
+
+#[trace("TC-016", "FR-014-AC-9")]
+#[test]
+fn progress_admission_authenticates_runtime_event_and_watermark_lines() {
+    let qualified = qualified_with_two_records();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let history = History::batch(&qualified);
+    let limits = Limits::owner_max();
+    let initial_selection = progress_authority_selection();
+    let initial_context = Context::new(history, &owner, &subject, 1, None);
+    let initial_document = authority::progress::derive(initial_context, &initial_selection, limits)
+        .expect("derive request progress document");
+    let request = progress_admission_request_wire(&qualified, &initial_document, false);
+
+    let records = qualified.records();
+    let event_lines = records
+        .iter()
+        .enumerate()
+        .map(|(index, record)| {
+            serde_json::json!({
+                "contract": authority::admission::EVENT_CONTRACT,
+                "record": record_candidate_wire(record),
+                "reading": (index + 1).to_string(),
+                "inputs": format!("{{\"member\":{index}}}"),
+            })
+            .to_string()
+        })
+        .collect::<Vec<_>>();
+    let next_boundary = boundary(OpenClosed::Closed);
+    let next_selection = authority::progress::Selection::new(
+        authority::clock::Selection::new(id("clock:event-time"), id("1")),
+        vec![id("source:payments")],
+        next_boundary,
+        OpenClosed::Closed,
+        id("trigger:refund-request"),
+        cutoff(40),
+        id("restoration:O1"),
+    );
+    let next_context = Context::new(history, &owner, &subject, 2, Some(&initial_document));
+    let next_document = authority::progress::derive(next_context, &next_selection, limits)
+        .expect("derive successor watermark document");
+    let watermark_line = serde_json::json!({
+        "contract": authority::admission::WATERMARK_CONTRACT,
+        "revision": "2",
+        "boundary": {
+            "clock_family": "timestamped-event",
+            "lower_nanos": "0",
+                "upper_inclusive_nanos": "29",
+                "carrier_end_exclusive_nanos": "30",
+                "watermark_nanos": "30",
+        },
+        "state": "closed",
+        "inclusive_boundary": "29",
+        "progress_document": String::from_utf8(next_document.bytes().to_vec())
+            .expect("watermark document is UTF-8"),
+    })
+    .to_string();
+    let mut lines = event_lines;
+    lines.push(watermark_line);
+    let event_input = lines.join("\n");
+
+    let admitted = authority::admission::admit_progress(
+        &serde_json::to_vec(&request).expect("request is JSON"),
+        Some(event_input.as_bytes()),
+        limits,
+    )
+    .expect("admit runtime lines and authenticated watermark");
+    let expected_initial = authority::progress::read(
+        initial_document.bytes(),
+        initial_context,
+        &initial_selection,
+        limits,
+    )
+    .expect("read request progress document");
+    assert_eq!(admitted.view(), &expected_initial);
+    assert_eq!(admitted.qualified(), qualified.as_ref());
+    assert!(admitted.selections().binds(admitted.view()));
+    assert_eq!(
+        admitted.selections().authority(),
+        &owner,
+        "the opaque selections retain the selected owner"
+    );
+    assert_eq!(admitted.steps().len(), 3);
+    for (index, step) in admitted.steps()[..2].iter().enumerate() {
+        let authority::admission::AdmittedStep::Event(event) = step else {
+            panic!("line {} is not an event", index + 1);
+        };
+        assert_eq!(event.line(), (index + 1) as u64);
+        assert_eq!(event.record(), &records[index]);
+        assert_eq!(event.reading(), (index + 1) as u64);
+        assert_eq!(event.inputs(), format!("{{\"member\":{index}}}").as_bytes());
+    }
+    let authority::admission::AdmittedStep::Watermark(watermark) = &admitted.steps()[2] else {
+        panic!("line 3 is not a watermark");
+    };
+    let expected_watermark =
+        authority::progress::read(next_document.bytes(), next_context, &next_selection, limits)
+            .expect("read successor progress document");
+    assert_eq!(watermark.line(), 3);
+    assert_eq!(watermark.view(), &expected_watermark);
+    assert_eq!(watermark.assertion(), next_document.bytes());
+    assert_eq!(watermark.inclusive_boundary(), &29);
 }
 
 #[trace("TC-011", "FR-011-AC-3", "FR-011-AC-6")]
