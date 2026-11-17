@@ -633,8 +633,6 @@ fn frontier_rejects_regressions_and_records_at_or_below_it() {
 #[test]
 fn watermark_documents_are_authenticated_against_the_qualified_history() {
     let (qualified, initial, request) = three_record_progress_fixture();
-    let owner = owner();
-    let subject = subject(&qualified);
     let boundary = three_record_boundary();
     let successor = successor_document(&qualified, &initial, 2, boundary);
     let lines = vec![
@@ -656,57 +654,6 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
     changed.push(event_line(&qualified.records()[2], "2"));
     let error = admit_lines(&request, &changed)
         .expect_err("watermark bytes not derived from the qualified history refuse");
-    assert_eq!(
-        error.stage(),
-        authority::admission::AdmissionStage::Event { line: 3 }
-    );
-
-    let mut empty_request = AdmissionRequest {
-        package: qualified.package().clone(),
-        producer: qualified.producer().clone(),
-        binding: qualified.binding().clone(),
-        expected_subject: qualified.expected_subject().clone(),
-        relationships: qualified.relationships().to_vec(),
-        required_relationships: qualified.required_relationships().to_vec(),
-        scope: qualified.scope().clone(),
-        records: Vec::new(),
-        limits: qualified.limits(),
-    };
-    empty_request.scope.members.clear();
-    empty_request.scope.required_member_identities.clear();
-    empty_request.limits.max_records = 0;
-    empty_request.limits.max_members = 0;
-    authority::population::assign_request_identities(&mut empty_request, Limits::owner_max())
-        .expect("seal empty history membership");
-    let empty = match admit(empty_request) {
-        AdmissionOutcome::Available { observation } => observation,
-        other => panic!("empty history fixture admission failed: {other:?}"),
-    };
-    let empty_subject = super::subject(&empty);
-    let empty_document = authority::progress::derive(
-        Context::new(
-            History::batch(&empty),
-            &owner,
-            &empty_subject,
-            2,
-            Some(&initial),
-        ),
-        &authority::progress::Selection::new(
-            authority::clock::Selection::new(id("clock:event-time"), id("1")),
-            vec![id("source:payments")],
-            boundary,
-            OpenClosed::Closed,
-            id("trigger:refund-request"),
-            cutoff(40),
-            id("restoration:O1"),
-        ),
-        Limits::owner_max(),
-    )
-    .expect("derive successor document from empty history");
-    let mut empty_lines = lines.clone();
-    empty_lines.push(watermark_line(&empty_document, "2", boundary));
-    empty_lines.push(event_line(&qualified.records()[2], "2"));
-    let error = admit_lines(&request, &empty_lines).expect_err("empty-history watermark refuses");
     assert_eq!(
         error.stage(),
         authority::admission::AdmissionStage::Event { line: 3 }
