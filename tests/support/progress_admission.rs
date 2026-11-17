@@ -188,19 +188,17 @@ fn malformed_event_lines_refuse_at_their_line() {
         .iter()
         .map(serde_json::Value::to_string)
         .collect::<Vec<_>>();
-    for (third_line, code) in [("not-json", authority::ErrorCode::InvalidJson)] {
-        let mut lines = record_lines.clone();
-        lines.push(third_line.to_owned());
-        let raw = lines.iter().map(String::as_str).collect::<Vec<_>>();
-        let error = admit_raw_lines(&request, &raw).expect_err("malformed third line refuses");
-        assert_eq!(
-            error.stage(),
-            authority::admission::AdmissionStage::Event { line: 3 }
-        );
-        assert!(
-            matches!(error.cause(), authority::admission::AdmissionCause::Authority(cause) if cause.code() == code)
-        );
-    }
+    let mut invalid_json = record_lines.clone();
+    invalid_json.push("not-json".to_owned());
+    let raw = invalid_json.iter().map(String::as_str).collect::<Vec<_>>();
+    let error = admit_raw_lines(&request, &raw).expect_err("malformed third line refuses");
+    assert_eq!(
+        error.stage(),
+        authority::admission::AdmissionStage::Event { line: 3 }
+    );
+    assert!(
+        matches!(error.cause(), authority::admission::AdmissionCause::Authority(cause) if cause.code() == authority::ErrorCode::InvalidJson)
+    );
     let mut empty_third = record_lines.clone();
     empty_third.extend([String::new(), String::from("unused fourth line")]);
     let raw = empty_third.iter().map(String::as_str).collect::<Vec<_>>();
