@@ -182,8 +182,8 @@ checksum = "da7c62ceae207dd37ea5b845da6a0696c799f85e97da1ab5b7910be3c1c80223"
 
 [[package]]
 name = "filament-exact"
-version = "0.1.0"
-source = "git+https://github.com/agent-ix/filament-exact?branch=main#9308a3b5c3bc96c260b26e46828c8589cf8861b2"
+version = "0.3.0"
+source = "git+https://github.com/agent-ix/filament-exact?tag=v0.3.0#086c11fc6b6a4db85e55749968fb6ca7894ed342"
 dependencies = [
  "allocator-api2",
  "arrayvec",
@@ -191,6 +191,7 @@ dependencies = [
  "num-integer",
  "num-traits",
  "once_cell",
+ "serde_json",
  "spin",
  "thiserror",
  "triomphe",
@@ -199,28 +200,17 @@ dependencies = [
 
 [[package]]
 name = "filament-observation"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "allocation-counter",
  "filament-exact",
- "fsl-foundation",
- "ix-trace-rs 0.1.0",
+ "ix-trace-rs",
  "jsonschema",
  "proptest",
  "quire-canonical",
  "serde",
  "serde_json",
  "sha2",
- "thiserror",
-]
-
-[[package]]
-name = "filament-semantic-value"
-version = "0.1.0"
-source = "git+https://github.com/agent-ix/filament-semantic-value?branch=main#c943d9560f1c614ad6b8512bfe8b8f2963f8122d"
-dependencies = [
- "filament-exact",
- "quire-canonical",
  "thiserror",
 ]
 
@@ -255,21 +245,6 @@ checksum = "e246562084dde8ebbcc943b261c406ce4f68e5032ec28029a251a47d6a295500"
 dependencies = [
  "num",
  "num-bigint",
-]
-
-[[package]]
-name = "fsl-foundation"
-version = "0.1.0"
-source = "git+https://github.com/agent-ix/filament-spec-language?branch=main#914d4a6e6000b8734dd373b7e51919f9256ca667"
-dependencies = [
- "filament-exact",
- "filament-semantic-value",
- "hashbrown",
- "ix-trace-rs 0.1.2",
- "quire-canonical",
- "serde",
- "serde_json",
- "thiserror",
 ]
 
 [[package]]
@@ -332,13 +307,8 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "ix-trace-rs"
-version = "0.1.0"
-source = "git+https://github.com/agent-ix/ix-trace-rs?tag=v0.1.1#2ce4ebf47f726b9d76388220545cd0abda8a5cfb"
-
-[[package]]
-name = "ix-trace-rs"
 version = "0.1.2"
-source = "git+https://github.com/agent-ix/ix-trace-rs?branch=main#3cd3285055e32e4c08fb124d76e489b9dd412b6b"
+source = "git+https://github.com/agent-ix/ix-trace-rs?tag=v0.1.2#e29cc07f70394ff018884d12406c1e150bded5f4"
 
 [[package]]
 name = "js-sys"
@@ -600,8 +570,8 @@ checksum = "a1d01941d82fa2ab50be1e79e6714289dd7cde78eba4c074bc5a4374f650dfe0"
 
 [[package]]
 name = "quire-canonical"
-version = "0.3.0"
-source = "git+https://github.com/agent-ix/quire-canonical?branch=main#7d2f8389d01fcbf318e658746015b85a31526cc9"
+version = "0.3.1"
+source = "git+https://github.com/agent-ix/quire-canonical?tag=v0.3.1#2204c5c3fc0ca13dd655400d94e923edd2e8416c"
 dependencies = [
  "quire-canonical-derive",
  "ryu-js",
@@ -614,7 +584,7 @@ dependencies = [
 [[package]]
 name = "quire-canonical-derive"
 version = "0.3.0"
-source = "git+https://github.com/agent-ix/quire-canonical?branch=main#7d2f8389d01fcbf318e658746015b85a31526cc9"
+source = "git+https://github.com/agent-ix/quire-canonical?tag=v0.3.1#2204c5c3fc0ca13dd655400d94e923edd2e8416c"
 dependencies = [
  "proc-macro2",
  "quote",
