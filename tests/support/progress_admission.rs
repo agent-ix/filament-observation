@@ -34,7 +34,7 @@ fn three_record_progress_fixture() -> (
     let owner = owner();
     let subject = subject(&qualified);
     let history = History::batch(&qualified);
-    let initial_selection = progress_selection(boundary(OpenClosed::Closed));
+    let initial_selection = progress_selection(three_record_boundary());
     let document = authority::progress::derive(
         Context::new(history, &owner, &subject, 1, None),
         &initial_selection,
@@ -62,6 +62,15 @@ fn progress_selection(boundary: TemporalBoundary) -> authority::progress::Select
         cutoff(40),
         id("restoration:O1"),
     )
+}
+
+fn three_record_boundary() -> TemporalBoundary {
+    TemporalBoundary::TimestampedEvent {
+        lower_nanos: 0,
+        upper_inclusive_nanos: 29,
+        carrier_end_exclusive_nanos: 60,
+        watermark_nanos: 60,
+    }
 }
 
 fn event_line(record: &AdmittedRecord, reading: &str) -> serde_json::Value {
@@ -428,7 +437,7 @@ fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
     let owner = owner();
     let subject = subject(&qualified);
     let records = qualified.records();
-    let frontier = boundary(OpenClosed::Closed);
+    let frontier = three_record_boundary();
     let successor = successor_document(&qualified, &initial_document, 2, frontier);
     let watermark = watermark_line(&successor, "2", frontier);
     let lines = vec![
@@ -498,17 +507,16 @@ fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
 #[test]
 fn qualification_uses_the_complete_event_record_population() {
     let (qualified, document, mut request) = three_record_progress_fixture();
-    let owner = owner();
-    let subject = subject(&qualified);
     request["limits"]["max_records"] = "4".into();
     let records = qualified.records();
+    let frontier = three_record_boundary();
     let first_three = vec![
         record_candidate_wire(&records[0]),
         event_line(&records[1], "1"),
         watermark_line(
-            &successor_document(&qualified, &document, 2, boundary(OpenClosed::Closed)),
+            &successor_document(&qualified, &document, 2, frontier),
             "2",
-            boundary(OpenClosed::Closed),
+            frontier,
         ),
     ];
 
@@ -555,9 +563,9 @@ fn qualification_uses_the_complete_event_record_population() {
         record_candidate_wire(&records[0]),
         event_line(&records[1], "1"),
         watermark_line(
-            &successor_document(&qualified, &document, 2, boundary(OpenClosed::Closed)),
+            &successor_document(&qualified, &document, 2, frontier),
             "2",
-            boundary(OpenClosed::Closed),
+            frontier,
         ),
     ];
     let error =
@@ -579,7 +587,7 @@ fn qualification_uses_the_complete_event_record_population() {
 fn frontier_rejects_regressions_and_records_at_or_below_it() {
     let (qualified, initial, mut request) = three_record_progress_fixture();
     request["limits"]["max_records"] = "4".into();
-    let boundary = boundary(OpenClosed::Closed);
+    let boundary = three_record_boundary();
     let successor = successor_document(&qualified, &initial, 2, boundary);
     let watermark = watermark_line(&successor, "2", boundary);
     let records = qualified.records();
@@ -601,8 +609,8 @@ fn frontier_rejects_regressions_and_records_at_or_below_it() {
     let regressed = TemporalBoundary::TimestampedEvent {
         lower_nanos: 0,
         upper_inclusive_nanos: 19,
-        carrier_end_exclusive_nanos: 30,
-        watermark_nanos: 30,
+        carrier_end_exclusive_nanos: 60,
+        watermark_nanos: 60,
     };
     let regressed_document = successor_document(&qualified, &initial, 3, regressed);
     let mut regressing = records
@@ -627,9 +635,9 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
     let (qualified, initial, request) = three_record_progress_fixture();
     let owner = owner();
     let subject = subject(&qualified);
-    let boundary = boundary(OpenClosed::Closed);
+    let boundary = three_record_boundary();
     let successor = successor_document(&qualified, &initial, 2, boundary);
-    let mut lines = vec![
+    let lines = vec![
         record_candidate_wire(&qualified.records()[0]),
         event_line(&qualified.records()[1], "1"),
     ];
@@ -700,8 +708,8 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
     let changed_boundary = TemporalBoundary::TimestampedEvent {
         lower_nanos: 0,
         upper_inclusive_nanos: 30,
-        carrier_end_exclusive_nanos: 31,
-        watermark_nanos: 31,
+        carrier_end_exclusive_nanos: 60,
+        watermark_nanos: 60,
     };
     let boundary_document = successor_document(&qualified, &initial, 2, changed_boundary);
     let mut boundary_lines = lines;
