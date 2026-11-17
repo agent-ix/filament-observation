@@ -36,7 +36,8 @@ authentication by recomputation, and independence from progress admission.
    byte, non-canonical, other prior), read them through `read`, read a derived
    document through `read_revised`, and revise twice from equal inputs.
 6. Exceed `max_population_entries` by one carried fact; admit progress through
-. End to end through `Selection::new`, `derive` and `revise`: derive and
+   `admit_progress` over the same history before and after a revision.
+7. End to end through `Selection::new`, `derive` and `revise`: derive and
    read a `Complete` prior through 100 over members stamped 0, 30, 60 and 90;
    admit a successor history with members at 0, 30, 60, 90 and 120 and build
    a selection through 140 omitting the member at 30. Check that `derive`
