@@ -43,6 +43,26 @@ fn qualified_with_window_and_closure(
     window_identity: &str,
     closure_definition_identity: &str,
 ) -> Box<QualifiedObservation> {
+    qualified_with_window_closure_and_member(
+        window_identity,
+        closure_definition_identity,
+        "member:O1",
+    )
+}
+
+fn qualified_with_member(member_identity: &str) -> Box<QualifiedObservation> {
+    qualified_with_window_closure_and_member(
+        "window:O1",
+        "closure-definition:windows",
+        member_identity,
+    )
+}
+
+fn qualified_with_window_closure_and_member(
+    window_identity: &str,
+    closure_definition_identity: &str,
+    member_identity: &str,
+) -> Box<QualifiedObservation> {
     let producer = producer();
     let subject = order(&producer, "order:O1");
     let causal_identity = RelationshipIdentity::new("relationship:O1-S1").unwrap();
@@ -79,7 +99,7 @@ fn qualified_with_window_and_closure(
             membership_rule_identity: id("unsealed-membership"),
             membership_digest: digest(0),
             membership_document: vec![],
-            required_member_identities: vec![id("member:O1")],
+            required_member_identities: vec![id(member_identity)],
             observation_sources: vec![id("source:payments")],
             completeness_dependencies: vec![id("completeness:O1")],
             progress_dependencies: vec![id("progress:O1")],
@@ -96,7 +116,7 @@ fn qualified_with_window_and_closure(
                 end_nanos: 30,
             },
             members: vec![Member {
-                object_identity: id("member:O1"),
+                object_identity: id(member_identity),
                 record_identity: id("unsealed-record"),
                 anchor: Anchor::TimestampNanos(10),
             }],
@@ -286,6 +306,7 @@ fn closure_selection() -> authority::closure::Selection {
 fn completeness_selection(record: &AdmittedRecord) -> authority::completeness::Selection {
     authority::completeness::Selection::new(
         id("boundary:O1"),
+        boundary(OpenClosed::Closed),
         vec![authority::completeness::Fact::new(
             id("member:O1"),
             Some(record.identity.clone()),
@@ -670,6 +691,7 @@ fn reader_accepts(
             context,
             &authority::completeness::Selection::new(
                 id("boundary:O1"),
+                boundary(OpenClosed::Closed),
                 vec![authority::completeness::Fact::new(
                     id("member:O1"),
                     Some(record.identity.clone()),
@@ -1464,6 +1486,7 @@ fn tc004_each_public_reader_requires_exact_independent_selections() {
         context,
         &authority::completeness::Selection::new(
             id("boundary:O1"),
+            boundary(OpenClosed::Closed),
             vec![authority::completeness::Fact::new(
                 id("member:O1"),
                 Some(record.identity.clone()),
@@ -2286,6 +2309,7 @@ fn tc004_state_axes_remain_independent_and_non_boolean() {
                     };
                     let completeness_selection = authority::completeness::Selection::new(
                         id("boundary:O1"),
+                        boundary(OpenClosed::Closed),
                         vec![authority::completeness::Fact::new(
                             id("member:O1"),
                             observation,
@@ -3702,6 +3726,7 @@ fn query_lineage_with_scope_and_conflict(
             .expect("query closure view");
     let completeness_selection = authority::completeness::Selection::new(
         id("boundary:O1"),
+        query_boundary(scope, OpenClosed::Closed),
         required_indices
             .iter()
             .map(|index| {
@@ -3993,7 +4018,11 @@ fn with_empty_v2_fixture<T>(
     .expect("empty closure authority");
     let completeness = authority::completeness::derive(
         context,
-        &authority::completeness::Selection::new(id("boundary:O1"), vec![]),
+        &authority::completeness::Selection::new(
+            id("boundary:O1"),
+            boundary(OpenClosed::Closed),
+            vec![],
+        ),
         limits,
     )
     .expect("empty completeness authority");
@@ -5135,6 +5164,338 @@ fn tc011_exact_sum_rejects_noncanonical_and_overflowing_values() {
             Outcome::Refused(value) if value.reason() == expected
         ));
     }
+}
+
+#[trace("TC-015", "FR-013-AC-1")]
+#[test]
+fn completeness_derive_carries_boundary_basis_and_selected_origin() {
+    let qualified = qualified();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let context = Context::new(History::batch(&qualified), &owner, &subject, 1, None);
+    let selection = completeness_selection(&qualified.records()[0]);
+    let document = authority::completeness::derive(context, &selection, Limits::owner_max())
+        .expect("derive completeness assertion");
+    let view =
+        authority::completeness::read(document.bytes(), context, &selection, Limits::owner_max())
+            .expect("strict-read derived completeness assertion");
+
+    assert_eq!(view.payload().boundary(), boundary(OpenClosed::Closed));
+    assert_eq!(
+        view.payload().basis(),
+        authority::completeness::Basis::Derived
+    );
+    assert_eq!(
+        view.payload().facts().next().unwrap().origin,
+        authority::completeness::FactOrigin::Selected
+    );
+}
+
+#[trace("TC-015", "FR-013-AC-5")]
+#[test]
+fn completeness_revision_recomputes_and_authenticates_revised_bytes() {
+    let qualified = qualified();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let history = History::batch(&qualified);
+    let limits = Limits::owner_max();
+    let prior_context = Context::new(history, &owner, &subject, 1, None);
+    let selection = completeness_selection(&qualified.records()[0]);
+    let prior_document = authority::completeness::derive(prior_context, &selection, limits)
+        .expect("derive prior completeness assertion");
+    let prior =
+        authority::completeness::read(prior_document.bytes(), prior_context, &selection, limits)
+            .expect("strict-read prior completeness assertion");
+
+    let context = Context::new(history, &owner, &subject, 2, Some(&prior_document));
+    let revised_document = authority::completeness::revise(&prior, context, &selection, limits)
+        .expect("revise completeness assertion");
+    let revised = authority::completeness::read_revised(
+        revised_document.bytes(),
+        &prior,
+        context,
+        &selection,
+        limits,
+    )
+    .expect("strict-read revised completeness assertion");
+    assert_eq!(
+        revised.payload().basis(),
+        authority::completeness::Basis::Revised
+    );
+    assert_eq!(revised.payload().boundary(), boundary(OpenClosed::Closed));
+    assert!(matches!(
+        authority::completeness::read(revised_document.bytes(), context, &selection, limits),
+        Err(error) if error.code() == authority::ErrorCode::ExpectedMismatch
+    ));
+
+    let mut changed = revised_document.bytes().to_vec();
+    changed.push(b' ');
+    assert!(
+        authority::completeness::read_revised(&changed, &prior, context, &selection, limits)
+            .is_err()
+    );
+}
+
+#[trace("TC-015", "FR-013-AC-2")]
+#[test]
+fn completeness_revision_refuses_regressed_boundary_and_complete_state() {
+    let qualified = qualified();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let history = History::batch(&qualified);
+    let limits = Limits::owner_max();
+    let prior_context = Context::new(history, &owner, &subject, 1, None);
+    let record = &qualified.records()[0];
+    let prior_selection = completeness_selection(record);
+    let prior_document = authority::completeness::derive(prior_context, &prior_selection, limits)
+        .expect("derive complete prior assertion");
+    let prior = authority::completeness::read(
+        prior_document.bytes(),
+        prior_context,
+        &prior_selection,
+        limits,
+    )
+    .expect("strict-read complete prior assertion");
+
+    let regressed_boundary = TemporalBoundary::TimestampedEvent {
+        lower_nanos: 0,
+        upper_inclusive_nanos: 19,
+        carrier_end_exclusive_nanos: 20,
+        watermark_nanos: 5,
+    };
+    let boundary_selection = authority::completeness::Selection::new(
+        id("boundary:O1"),
+        regressed_boundary,
+        vec![authority::completeness::Fact::new(
+            id("member:O1"),
+            Some(record.identity.clone()),
+            authority::completeness::FactStatus::Available,
+        )],
+    );
+    let context = Context::new(history, &owner, &subject, 2, Some(&prior_document));
+    let error = authority::completeness::revise(&prior, context, &boundary_selection, limits)
+        .expect_err("a regressed boundary refuses");
+    assert!(matches!(
+        error.cause(),
+        authority::completeness::RevisionCause::Contradiction(
+            authority::completeness::Contradiction::BoundaryRegressed { .. }
+        )
+    ));
+
+    let incomplete_selection = authority::completeness::Selection::new(
+        id("boundary:O1"),
+        boundary(OpenClosed::Closed),
+        vec![authority::completeness::Fact::new(
+            id("member:O1"),
+            None,
+            authority::completeness::FactStatus::Incomplete,
+        )],
+    );
+    let error = authority::completeness::revise(&prior, context, &incomplete_selection, limits)
+        .expect_err("a complete assertion cannot regress to incomplete");
+    assert!(matches!(
+        error.cause(),
+        authority::completeness::RevisionCause::Contradiction(
+            authority::completeness::Contradiction::CompleteRegressed { .. }
+        )
+    ));
+    assert_eq!(
+        prior_document.bytes(),
+        authority::completeness::derive(prior_context, &prior_selection, limits)
+            .expect("the retained prior remains derivable")
+            .bytes()
+    );
+}
+
+#[trace("TC-015", "FR-013-AC-3", "FR-013-AC-7")]
+#[test]
+fn completeness_revision_carries_omitted_members_and_preserves_fact_strength() {
+    let qualified = qualified();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let history = History::batch(&qualified);
+    let limits = Limits::owner_max();
+    let prior_context = Context::new(history, &owner, &subject, 1, None);
+    let record = &qualified.records()[0];
+    let available = completeness_selection(record);
+    let prior_document = authority::completeness::derive(prior_context, &available, limits)
+        .expect("derive complete prior assertion");
+    let prior =
+        authority::completeness::read(prior_document.bytes(), prior_context, &available, limits)
+            .expect("read complete prior assertion");
+    let context = Context::new(history, &owner, &subject, 2, Some(&prior_document));
+
+    let omitted = authority::completeness::Selection::new(
+        id("boundary:O1"),
+        boundary(OpenClosed::Closed),
+        vec![],
+    );
+    let carried_document = authority::completeness::revise(&prior, context, &omitted, limits)
+        .expect("an omitted held member is carried");
+    let carried = authority::completeness::read_revised(
+        carried_document.bytes(),
+        &prior,
+        context,
+        &omitted,
+        limits,
+    )
+    .expect("read carried completeness revision");
+    let carried_fact = carried.payload().facts().next().unwrap();
+    assert_eq!(carried_fact.member_identity, "member:O1");
+    assert_eq!(
+        carried_fact.origin,
+        authority::completeness::FactOrigin::Carried
+    );
+    assert_eq!(
+        carried_fact.status,
+        authority::completeness::FactStatus::Available
+    );
+    assert_eq!(
+        carried.payload().state(),
+        authority::completeness::State::Complete
+    );
+
+    let incomplete = authority::completeness::Selection::new(
+        id("boundary:O1"),
+        boundary(OpenClosed::Closed),
+        vec![authority::completeness::Fact::new(
+            id("member:O1"),
+            None,
+            authority::completeness::FactStatus::Incomplete,
+        )],
+    );
+    let incomplete_prior_document =
+        authority::completeness::derive(prior_context, &incomplete, limits)
+            .expect("derive incomplete prior assertion");
+    let incomplete_prior = authority::completeness::read(
+        incomplete_prior_document.bytes(),
+        prior_context,
+        &incomplete,
+        limits,
+    )
+    .expect("read incomplete prior assertion");
+    let incomplete_context = Context::new(
+        history,
+        &owner,
+        &subject,
+        2,
+        Some(&incomplete_prior_document),
+    );
+    let repaired_document =
+        authority::completeness::revise(&incomplete_prior, incomplete_context, &available, limits)
+            .expect("an incomplete member may become available");
+    let repaired = authority::completeness::read_revised(
+        repaired_document.bytes(),
+        &incomplete_prior,
+        incomplete_context,
+        &available,
+        limits,
+    )
+    .expect("read repaired completeness revision");
+    assert_eq!(
+        repaired.payload().facts().next().unwrap().status,
+        authority::completeness::FactStatus::Available
+    );
+
+    let contradicted = authority::completeness::Selection::new(
+        id("boundary:O1"),
+        boundary(OpenClosed::Closed),
+        vec![authority::completeness::Fact::new(
+            id("member:O1"),
+            Some(record.identity.clone()),
+            authority::completeness::FactStatus::Contradicted,
+        )],
+    );
+    let contradicted_prior_document =
+        authority::completeness::derive(prior_context, &contradicted, limits)
+            .expect("derive contradicted prior assertion");
+    let contradicted_prior = authority::completeness::read(
+        contradicted_prior_document.bytes(),
+        prior_context,
+        &contradicted,
+        limits,
+    )
+    .expect("read contradicted prior assertion");
+    let contradicted_context = Context::new(
+        history,
+        &owner,
+        &subject,
+        2,
+        Some(&contradicted_prior_document),
+    );
+    let contradiction_preserved = authority::completeness::revise(
+        &contradicted_prior,
+        contradicted_context,
+        &available,
+        limits,
+    )
+    .expect("an available listing cannot erase contradiction");
+    let contradiction_preserved = authority::completeness::read_revised(
+        contradiction_preserved.bytes(),
+        &contradicted_prior,
+        contradicted_context,
+        &available,
+        limits,
+    )
+    .expect("read contradiction-preserving revision");
+    assert_eq!(
+        contradiction_preserved
+            .payload()
+            .facts()
+            .next()
+            .unwrap()
+            .status,
+        authority::completeness::FactStatus::Contradicted
+    );
+}
+
+#[trace("TC-015", "FR-013-AC-7")]
+#[test]
+fn completeness_revision_refuses_omitted_members_not_held_by_prior() {
+    let prior_qualified = qualified();
+    let next_qualified = qualified_with_member("member:O2");
+    let owner = owner();
+    let prior_subject = subject(&prior_qualified);
+    let prior_history = History::batch(&prior_qualified);
+    let limits = Limits::owner_max();
+    let prior_context = Context::new(prior_history, &owner, &prior_subject, 1, None);
+    let prior_selection = completeness_selection(&prior_qualified.records()[0]);
+    let prior_document = authority::completeness::derive(prior_context, &prior_selection, limits)
+        .expect("derive the prior population");
+    let prior = authority::completeness::read(
+        prior_document.bytes(),
+        prior_context,
+        &prior_selection,
+        limits,
+    )
+    .expect("read the prior population");
+
+    let next_subject = subject(&next_qualified);
+    let next_history = History::batch(&next_qualified);
+    let next_context = Context::new(
+        next_history,
+        &owner,
+        &next_subject,
+        2,
+        Some(&prior_document),
+    );
+    let omitted = authority::completeness::Selection::new(
+        id("boundary:O1"),
+        boundary(OpenClosed::Closed),
+        vec![],
+    );
+    let error = authority::completeness::revise(&prior, next_context, &omitted, limits)
+        .expect_err("a new required member cannot be omitted");
+    assert_eq!(
+        error.stage(),
+        authority::completeness::RevisionStage::Revision
+    );
+    assert!(matches!(
+        error.cause(),
+        authority::completeness::RevisionCause::Contradiction(
+            authority::completeness::Contradiction::UncoveredMember { member_identity, .. }
+        ) if member_identity == &id("member:O2")
+    ));
 }
 
 #[trace("TC-011", "FR-011-AC-3", "FR-011-AC-6")]

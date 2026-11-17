@@ -10,9 +10,9 @@ use filament_observation::authority::{
     TemporalBoundary,
 };
 use filament_observation::{
-    admit, AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest,
-    Identity, Member, ObservationBinding, PackageSelection, QualifiedObservation, ResourceLimits,
-    ScopeKind, ScopeSelection, ValueState, Visibility, NATIVE_LINKED_PACKAGE_FORMAT,
+    AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest, Identity,
+    Member, NATIVE_LINKED_PACKAGE_FORMAT, ObservationBinding, PackageSelection,
+    QualifiedObservation, ResourceLimits, ScopeKind, ScopeSelection, ValueState, Visibility, admit,
 };
 use ix_trace_rs::trace;
 
@@ -411,8 +411,11 @@ fn authority_proofs_for_trigger_from(
                 )]
             }
         };
-        let completeness_selection =
-            authority::completeness::Selection::new(id("boundary:O1"), facts);
+        let completeness_selection = authority::completeness::Selection::new(
+            id("boundary:O1"),
+            boundary(OpenClosed::Closed),
+            facts,
+        );
         let completeness_document =
             authority::completeness::derive(context, &completeness_selection, Limits::owner_max())
                 .expect("derive completeness authority");

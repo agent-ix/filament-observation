@@ -678,6 +678,7 @@ pub struct Context<'a> {
     subject: &'a SubjectSelection,
     revision: u64,
     predecessor: Option<&'a Document>,
+    allow_predecessor_subject_change: bool,
 }
 
 impl<'a> Context<'a> {
@@ -696,6 +697,7 @@ impl<'a> Context<'a> {
             subject,
             revision,
             predecessor,
+            allow_predecessor_subject_change: false,
         }
     }
 
@@ -725,6 +727,11 @@ impl<'a> Context<'a> {
 
     pub(crate) const fn predecessor(self) -> Option<&'a Document> {
         self.predecessor
+    }
+
+    pub(crate) const fn allow_predecessor_subject_change(mut self) -> Self {
+        self.allow_predecessor_subject_change = true;
+        self
     }
 }
 
@@ -1246,7 +1253,8 @@ fn validate_context(contract: &'static str, context: Context<'_>) -> Result<()> 
             if context.revision > prior.revision
                 && prior.contract == contract
                 && prior.authority == *context.authority
-                && prior.subject == *context.subject
+                && (context.allow_predecessor_subject_change
+                    || prior.subject == *context.subject)
                 && prior.identity.valid() => {}
         None => {
             return Err(Error::new(
