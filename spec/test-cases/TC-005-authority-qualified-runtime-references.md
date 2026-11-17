@@ -24,7 +24,9 @@ invariance and non-causal key ordering.
    subject collection while changing only non-key presentation/transport facts.
 4. Resolve one runtime relationship against its exact producer declaration;
    then mutate its declaration, identity, authority, endpoint kind and endpoint
-   order independently.
+   order independently. Resolve `Order-paymentAttempt` (Order to
+   PaymentAttempt) and `Order-refund` (Order to Refund) the same way, reversed
+   and with a Shipment target.
 5. Exercise zero, one, exact-replay, conflicting, same-identity incompatible and
    multiple-distinct candidates for one required relationship slot.
 6. Repeat at exactly and one over both relationship limits.
