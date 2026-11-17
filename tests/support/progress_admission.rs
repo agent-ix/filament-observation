@@ -385,28 +385,180 @@ fn admission_depends_only_on_supplied_request_bytes() {
 #[trace("TC-016", "FR-014-AC-10")]
 #[test]
 fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
-    let (qualified, initial, request) = progress_fixture(false);
+    let qualified = qualified_with_three_records();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let history = History::batch(&qualified);
+    let initial_selection = progress_authority_selection();
+    let initial_document = authority::progress::derive(
+        Context::new(history, &owner, &subject, 1, None),
+        &initial_selection,
+        Limits::owner_max(),
+    )
+    .expect("derive three-member request progress document");
+    let request = progress_admission_request_wire(&qualified, &initial_document, false);
     let records = qualified.records();
-    let successor = successor_document(&qualified, &initial, 2, boundary(OpenClosed::Closed));
-    let watermark = watermark_line(&successor, "2", boundary(OpenClosed::Closed));
+    let frontier = boundary(OpenClosed::Closed);
+    let successor = successor_document(&qualified, &initial_document, 2, frontier);
+    let watermark = watermark_line(&successor, "2", frontier);
     let lines = vec![
         record_candidate_wire(&records[0]),
         event_line(&records[1], "1"),
         watermark,
+        event_line(&records[2], "2"),
     ];
     let admitted = admit_lines(&request, &lines).expect("mixed records and events admit");
-    assert_eq!(admitted.steps().len(), 2);
+    assert_eq!(admitted.qualified(), qualified.as_ref());
+    assert_eq!(admitted.steps().len(), 3);
     assert!(matches!(
         admitted.steps()[0],
         authority::admission::AdmittedStep::Event(_)
+    ));
+    let authority_selection = AuthoritySelection {
+        definition_identity: owner.definition_identity.clone(),
+        definition_revision: owner.definition_revision.clone(),
+        definition_digest: owner.definition_digest,
+    };
+    let initial_expected = authority::progress::read(
+        initial_document.bytes(),
+        Context::new(History::batch(&qualified), &owner, &subject, 1, None),
+        &initial_selection,
+        Limits::owner_max(),
+    )
+    .expect("read initial progress document over all records");
+    assert_eq!(admitted.view(), &initial_expected);
+    assert_eq!(admitted.selections().authority(), &authority_selection);
+    let authority::admission::AdmittedStep::Watermark(admitted_watermark) = &admitted.steps()[1]
+    else {
+        panic!("line 3 is not an admitted watermark");
+    };
+    let successor_selection = authority::progress::Selection::new(
+        authority::clock::Selection::new(id("clock:event-time"), id("1")),
+        vec![id("source:payments")],
+        frontier,
+        OpenClosed::Closed,
+        id("trigger:refund-request"),
+        cutoff(40),
+        id("restoration:O1"),
+    );
+    let successor_expected = authority::progress::read(
+        successor.bytes(),
+        Context::new(
+            History::batch(&qualified),
+            &owner,
+            &subject,
+            2,
+            Some(&initial_document),
+        ),
+        &successor_selection,
+        Limits::owner_max(),
+    )
+    .expect("read successor progress document over all records");
+    assert_eq!(admitted_watermark.view(), &successor_expected);
+    assert_eq!(admitted_watermark.line(), 3);
+    assert!(matches!(
+        &admitted.steps()[2],
+        authority::admission::AdmittedStep::Event(event)
+            if event.line() == 4 && event.record() == &records[2]
     ));
 
     let only_records = records
         .iter()
         .map(record_candidate_wire)
         .collect::<Vec<_>>();
-    let admitted = admit_lines(&request, &only_records).expect("record-candidate-only lines admit");
-    assert!(admitted.steps().is_empty());
+    let record_only =
+        admit_lines(&request, &only_records).expect("record-candidate-only lines admit");
+    assert!(record_only.steps().is_empty());
+    assert_eq!(record_only.qualified(), qualified.as_ref());
+}
+
+#[trace("TC-016", "FR-014-AC-14")]
+#[test]
+fn qualification_uses_the_complete_event_record_population() {
+    let qualified = qualified_with_three_records();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let history = History::batch(&qualified);
+    let selection = progress_authority_selection();
+    let document = authority::progress::derive(
+        Context::new(history, &owner, &subject, 1, None),
+        &selection,
+        Limits::owner_max(),
+    )
+    .expect("derive request progress document");
+    let mut request = progress_admission_request_wire(&qualified, &document, false);
+    request["limits"]["max_records"] = "4".into();
+    let records = qualified.records();
+    let first_three = vec![
+        record_candidate_wire(&records[0]),
+        event_line(&records[1], "1"),
+        watermark_line(
+            &successor_document(&qualified, &document, 2, boundary(OpenClosed::Closed)),
+            "2",
+            boundary(OpenClosed::Closed),
+        ),
+    ];
+
+    let mut repeated = first_three.clone();
+    repeated.push(event_line(&records[2], "2"));
+    repeated.push(event_line(&records[2], "3"));
+    let error = admit_lines(&request, &repeated).expect_err("repeated c refuses at qualification");
+    assert_eq!(
+        error.stage(),
+        authority::admission::AdmissionStage::Qualification
+    );
+    assert!(matches!(
+        error.cause(),
+        authority::admission::AdmissionCause::Observation(AdmissionOutcome::Refused {
+            cause: filament_observation::RefusalCause::DuplicateRecord { .. }
+        })
+    ));
+
+    let mut nonmember = records[2].clone();
+    nonmember.identity = id("unsealed-record:ambient");
+    nonmember.anchor = Anchor::TimestampNanos(50);
+    nonmember.event_time_nanos = 50;
+    nonmember.ingestion_time_nanos = 51;
+    nonmember.identity = authority::observation::record_identity(&nonmember, Limits::owner_max())
+        .expect("derive ambient record identity");
+    let nonmember_line = event_line(&nonmember, "4");
+    let mut with_nonmember = first_three.clone();
+    with_nonmember.push(event_line(&records[2], "2"));
+    with_nonmember.push(nonmember_line);
+    let error = admit_lines(&request, &with_nonmember)
+        .expect_err("appended non-member refuses at qualification");
+    assert_eq!(
+        error.stage(),
+        authority::admission::AdmissionStage::Qualification
+    );
+    assert!(matches!(
+        error.cause(),
+        authority::admission::AdmissionCause::Observation(AdmissionOutcome::Incomplete {
+            reasons
+        }) if reasons == &[filament_observation::IncompleteReason::MissingMembership]
+    ));
+
+    let missing_third = vec![
+        record_candidate_wire(&records[0]),
+        event_line(&records[1], "1"),
+        watermark_line(
+            &successor_document(&qualified, &document, 2, boundary(OpenClosed::Closed)),
+            "2",
+            boundary(OpenClosed::Closed),
+        ),
+    ];
+    let error =
+        admit_lines(&request, &missing_third).expect_err("missing c refuses at qualification");
+    assert_eq!(
+        error.stage(),
+        authority::admission::AdmissionStage::Qualification
+    );
+    assert!(matches!(
+        error.cause(),
+        authority::admission::AdmissionCause::Observation(AdmissionOutcome::Refused {
+            cause: filament_observation::RefusalCause::MemberRecordMismatch { .. }
+        })
+    ));
 }
 
 #[trace("TC-016", "FR-014-AC-11")]
@@ -456,27 +608,100 @@ fn frontier_rejects_regressions_and_records_at_or_below_it() {
 
 #[trace("TC-016", "FR-014-AC-12")]
 #[test]
-fn watermark_documents_are_authenticated_against_the_prefix() {
-    let (qualified, initial, request) = progress_fixture(false);
+fn watermark_documents_are_authenticated_against_the_qualified_history() {
+    let qualified = qualified_with_three_records();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let selection = progress_authority_selection();
+    let initial = authority::progress::derive(
+        Context::new(History::batch(&qualified), &owner, &subject, 1, None),
+        &selection,
+        Limits::owner_max(),
+    )
+    .expect("derive request progress document");
+    let request = progress_admission_request_wire(&qualified, &initial, false);
     let boundary = boundary(OpenClosed::Closed);
     let successor = successor_document(&qualified, &initial, 2, boundary);
-    let mut bad = watermark_line(&successor, "2", boundary);
-    let mut document = bad["progress_document"]
+    let mut lines = vec![
+        record_candidate_wire(&qualified.records()[0]),
+        event_line(&qualified.records()[1], "1"),
+    ];
+    let mut changed_bytes = watermark_line(&successor, "2", boundary);
+    let mut document = changed_bytes["progress_document"]
         .as_str()
-        .unwrap()
+        .expect("watermark document is text")
         .as_bytes()
         .to_vec();
     document[0] ^= 1;
-    bad["progress_document"] = String::from_utf8(document).unwrap().into();
-    let mut prefix = qualified
-        .records()
-        .iter()
-        .enumerate()
-        .map(|(index, record)| event_line(record, &(index + 1).to_string()))
-        .collect::<Vec<_>>();
-    prefix.push(bad);
+    changed_bytes["progress_document"] = String::from_utf8(document)
+        .expect("mutated document stays UTF-8")
+        .into();
+    let mut changed = lines.clone();
+    changed.push(changed_bytes);
+    changed.push(event_line(&qualified.records()[2], "2"));
+    let error = admit_lines(&request, &changed)
+        .expect_err("watermark bytes not derived from the qualified history refuse");
+    assert_eq!(
+        error.stage(),
+        authority::admission::AdmissionStage::Event { line: 3 }
+    );
+
+    let mut empty_request = AdmissionRequest {
+        package: qualified.package().clone(),
+        producer: qualified.producer().clone(),
+        binding: qualified.binding().clone(),
+        expected_subject: qualified.expected_subject().clone(),
+        relationships: qualified.relationships().to_vec(),
+        required_relationships: qualified.required_relationships().to_vec(),
+        scope: qualified.scope().clone(),
+        records: Vec::new(),
+        limits: qualified.limits(),
+    };
+    empty_request.scope.members.clear();
+    empty_request.scope.required_member_identities.clear();
+    empty_request.limits.max_records = 0;
+    empty_request.limits.max_members = 0;
+    authority::population::assign_request_identities(&mut empty_request, Limits::owner_max())
+        .expect("seal empty history membership");
+    let empty = match admit(empty_request) {
+        AdmissionOutcome::Available { observation } => observation,
+        other => panic!("empty history fixture admission failed: {other:?}"),
+    };
+    let empty_document = authority::progress::derive(
+        Context::new(History::batch(&empty), &owner, &subject, 2, Some(&initial)),
+        &authority::progress::Selection::new(
+            authority::clock::Selection::new(id("clock:event-time"), id("1")),
+            vec![id("source:payments")],
+            boundary,
+            OpenClosed::Closed,
+            id("trigger:refund-request"),
+            cutoff(40),
+            id("restoration:O1"),
+        ),
+        Limits::owner_max(),
+    )
+    .expect("derive successor document from empty history");
+    let mut empty_lines = lines.clone();
+    empty_lines.push(watermark_line(&empty_document, "2", boundary));
+    empty_lines.push(event_line(&qualified.records()[2], "2"));
+    let error = admit_lines(&request, &empty_lines).expect_err("empty-history watermark refuses");
+    assert_eq!(
+        error.stage(),
+        authority::admission::AdmissionStage::Event { line: 3 }
+    );
+
+    let changed_boundary = TemporalBoundary::TimestampedEvent {
+        lower_nanos: 0,
+        upper_inclusive_nanos: 30,
+        carrier_end_exclusive_nanos: 31,
+        watermark_nanos: 31,
+    };
+    let boundary_document = successor_document(&qualified, &initial, 2, changed_boundary);
+    let mut boundary_lines = lines;
+    boundary_lines.push(watermark_line(&boundary_document, "2", boundary));
+    boundary_lines.push(event_line(&qualified.records()[2], "2"));
     let error =
-        admit_lines(&request, &prefix).expect_err("watermark not derived from prefix refuses");
+        admit_lines(&request, &boundary_lines).expect_err("boundary plus one watermark refuses");
     assert_eq!(
         error.stage(),
         authority::admission::AdmissionStage::Event { line: 3 }

@@ -80,6 +80,51 @@ fn qualified_with_two_records() -> Box<QualifiedObservation> {
     }
 }
 
+fn qualified_with_three_records() -> Box<QualifiedObservation> {
+    let admitted = qualified_with_two_records();
+    let mut request = AdmissionRequest {
+        package: admitted.package().clone(),
+        producer: admitted.producer().clone(),
+        binding: admitted.binding().clone(),
+        expected_subject: admitted.expected_subject().clone(),
+        relationships: admitted.relationships().to_vec(),
+        required_relationships: admitted.required_relationships().to_vec(),
+        scope: admitted.scope().clone(),
+        records: admitted.records().to_vec(),
+        limits: admitted.limits(),
+    };
+    request.scope.range = ClockRange::Timestamp {
+        start_nanos: 0,
+        end_nanos: 60,
+    };
+    let mut next = request.records[0].clone();
+    next.identity = id("unsealed-record:O3");
+    next.anchor = Anchor::TimestampNanos(40);
+    next.event_time_nanos = 40;
+    next.ingestion_time_nanos = 41;
+    let identity = authority::observation::record_identity(&next, Limits::owner_max())
+        .expect("derive third record identity");
+    next.identity = identity.clone();
+    request.records.push(next);
+    request.limits.max_records = 3;
+    request.limits.max_members = 3;
+    request
+        .scope
+        .required_member_identities
+        .push(id("member:O3"));
+    request.scope.members.push(Member {
+        object_identity: id("member:O3"),
+        record_identity: identity,
+        anchor: Anchor::TimestampNanos(40),
+    });
+    authority::population::assign_request_identities(&mut request, Limits::owner_max())
+        .expect("seal third required member");
+    match admit(request) {
+        AdmissionOutcome::Available { observation } => observation,
+        other => panic!("three-record progress fixture admission failed: {other:?}"),
+    }
+}
+
 fn qualified_with_window(window_identity: &str) -> Box<QualifiedObservation> {
     qualified_with_window_and_closure(window_identity, "closure-definition:windows")
 }

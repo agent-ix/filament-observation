@@ -381,7 +381,7 @@ pub fn admit_progress(
         required: binding.required,
     };
     let resource_limits = resource_limits_from_wire(limits_wire)?;
-    let (records, pending_lines, initial_record_count) = if let Some(raw) = &request.records {
+    let (records, pending_lines) = if let Some(raw) = &request.records {
         let wire_records: Vec<RecordWire> = decode(raw.get().as_bytes(), AdmissionStage::Request)?;
         let records = wire_records
             .into_iter()
@@ -399,8 +399,7 @@ pub fn admit_progress(
                 "record population exceeds request limit",
             ));
         }
-        let initial_record_count = records.len();
-        (records, Vec::new(), initial_record_count)
+        (records, Vec::new())
     } else if event_bytes.is_some() {
         let parsed = decode_event_input(
             event_bytes.unwrap_or_default(),
@@ -408,9 +407,9 @@ pub fn admit_progress(
             resource_limits.max_records,
             effective,
         )?;
-        (parsed.records, parsed.lines, parsed.initial_record_count)
+        (parsed.records, parsed.lines)
     } else {
-        (Vec::new(), Vec::new(), 0)
+        (Vec::new(), Vec::new())
     };
     let request_value = crate::AdmissionRequest {
         package: crate::PackageSelection {
@@ -448,11 +447,8 @@ pub fn admit_progress(
             stage: AdmissionStage::Request,
             cause: Box::new(cause),
         })?;
-    let request_for_qualification = request_value.clone();
-    let initial_records = request_value.records[..initial_record_count].to_vec();
-    let has_pending_lines = !pending_lines.is_empty();
     let initial_observation =
-        qualify_with_records(request_for_qualification.clone(), initial_records)?;
+        qualify_with_records(request_value.clone(), request_value.records.clone())?;
     let predecessor = request
         .predecessor_document
         .as_deref()
@@ -500,7 +496,6 @@ pub fn admit_progress(
         ));
     }
     let mut steps = Vec::new();
-    let mut prefix_records = Vec::new();
     let mut frontier = None;
     let mut previous_watermark_view = progress_view.clone();
     for pending in pending_lines {
@@ -509,7 +504,6 @@ pub fn admit_progress(
                 if let Some(boundary) = frontier {
                     require_record_after_frontier(&record, boundary, line)?;
                 }
-                prefix_records.push(record);
             }
             PendingLine::Event {
                 line,
@@ -520,7 +514,6 @@ pub fn admit_progress(
                 if let Some(boundary) = frontier {
                     require_record_after_frontier(&record, boundary, line)?;
                 }
-                prefix_records.push(record.clone());
                 steps.push(AdmittedStep::Event(AdmittedEvent {
                     line,
                     record,
@@ -582,11 +575,9 @@ pub fn admit_progress(
                             cause: Box::new(cause),
                         }
                     })?;
-                let observation =
-                    qualify_with_records(request_value.clone(), prefix_records.clone())?;
                 let predecessor = previous_watermark_view.document();
                 let context = Context::new(
-                    History::batch(&observation),
+                    History::batch(&initial_observation),
                     &authority,
                     &subject,
                     revision,
@@ -610,11 +601,6 @@ pub fn admit_progress(
             }
         }
     }
-    let final_observation = if has_pending_lines {
-        qualify_with_records(request_for_qualification, prefix_records)?
-    } else {
-        initial_observation
-    };
     let selections = AuthoritySelections {
         authority,
         subject,
@@ -624,7 +610,7 @@ pub fn admit_progress(
     };
     Ok(AdmittedProgress {
         view: progress_view,
-        qualified: final_observation,
+        qualified: initial_observation,
         selections,
         steps,
     })
@@ -973,7 +959,6 @@ enum PendingLine {
 struct ParsedEvents {
     records: Vec<AdmittedRecord>,
     lines: Vec<PendingLine>,
-    initial_record_count: usize,
 }
 
 impl RecordCandidateLineWire {
@@ -1636,13 +1621,8 @@ fn decode_event_input(
 ) -> std::result::Result<ParsedEvents, AdmissionError> {
     let mut records = Vec::new();
     let mut lines = Vec::new();
-    let mut initial_record_count = None;
     if bytes.is_empty() {
-        return Ok(ParsedEvents {
-            records,
-            lines,
-            initial_record_count: 0,
-        });
+        return Ok(ParsedEvents { records, lines });
     }
     for (index, raw_line) in bytes.split(|byte| *byte == b'\n').enumerate() {
         if raw_line.is_empty() {
@@ -1738,7 +1718,6 @@ fn decode_event_input(
                         "watermark line contract does not match",
                     ));
                 }
-                initial_record_count.get_or_insert(records.len());
                 lines.push(PendingLine::Watermark { line, wire });
             }
             _ => {
@@ -1750,11 +1729,7 @@ fn decode_event_input(
             }
         }
     }
-    Ok(ParsedEvents {
-        initial_record_count: initial_record_count.unwrap_or(records.len()),
-        records,
-        lines,
-    })
+    Ok(ParsedEvents { records, lines })
 }
 
 fn event_record(
