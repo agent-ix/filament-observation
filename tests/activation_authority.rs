@@ -411,8 +411,11 @@ fn authority_proofs_for_trigger_from(
                 )]
             }
         };
-        let completeness_selection =
-            authority::completeness::Selection::new(id("boundary:O1"), facts);
+        let completeness_selection = authority::completeness::Selection::new(
+            id("boundary:O1"),
+            boundary(OpenClosed::Closed),
+            facts,
+        );
         let completeness_document =
             authority::completeness::derive(context, &completeness_selection, Limits::owner_max())
                 .expect("derive completeness authority");

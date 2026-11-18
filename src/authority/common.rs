@@ -678,6 +678,7 @@ pub struct Context<'a> {
     subject: &'a SubjectSelection,
     revision: u64,
     predecessor: Option<&'a Document>,
+    allow_predecessor_subject_change: bool,
 }
 
 impl<'a> Context<'a> {
@@ -696,6 +697,7 @@ impl<'a> Context<'a> {
             subject,
             revision,
             predecessor,
+            allow_predecessor_subject_change: false,
         }
     }
 
@@ -725,6 +727,11 @@ impl<'a> Context<'a> {
 
     pub(crate) const fn predecessor(self) -> Option<&'a Document> {
         self.predecessor
+    }
+
+    pub(crate) const fn allow_predecessor_subject_change(mut self) -> Self {
+        self.allow_predecessor_subject_change = true;
+        self
     }
 }
 
@@ -805,6 +812,19 @@ pub struct Validated<P> {
 }
 
 impl<P> Validated<P> {
+    pub(crate) fn document(&self) -> Document {
+        Document {
+            contract: self.contract,
+            identity: self.identity.clone(),
+            revision: self.revision,
+            predecessor: self.predecessor.clone(),
+            authority: self.authority.clone(),
+            subject: self.subject.clone(),
+            bytes: self.bytes.clone(),
+            usage: Usage::default(),
+        }
+    }
+
     /// Lets an owner module attach data derived from the validated payload.
     pub(crate) fn payload_mut(&mut self) -> &mut P {
         &mut self.payload
@@ -1050,6 +1070,79 @@ where
     read_exact_preflighted(contract, bytes, expected, limits, observed)
 }
 
+pub(crate) fn document_from_bytes(
+    contract: &'static str,
+    bytes: &[u8],
+    limits: Limits,
+) -> Result<Document> {
+    let effective = limits.effective();
+    let usage = preflight_for_contract(bytes, effective, contract)?;
+    let envelope: Envelope<serde_json::Value> = serde_json::from_slice(bytes).map_err(|_| {
+        Error::new(
+            ErrorCode::InvalidJson,
+            "document is not a closed owner envelope",
+            usage,
+        )
+    })?;
+    if envelope.contract != contract {
+        return Err(Error::new(
+            ErrorCode::ContractMismatch,
+            "contract label does not select this owner reader",
+            usage,
+        ));
+    }
+    if to_bounded_json(&envelope, effective.max_output_bytes)? != bytes {
+        return Err(Error::new(
+            ErrorCode::NonCanonical,
+            "document bytes are not the canonical closed encoding",
+            usage,
+        ));
+    }
+    let without_identity = EnvelopeWithoutIdentity {
+        contract,
+        revision: envelope.revision,
+        authority: &envelope.authority,
+        subject: &envelope.subject,
+        payload: &envelope.payload,
+        predecessor: &envelope.predecessor,
+        limits: envelope.limits,
+    };
+    let identity = derive_envelope_identity(&without_identity, effective.max_output_bytes)?;
+    if identity.as_str() != envelope.identity {
+        return Err(Error::new(
+            ErrorCode::IdentityMismatch,
+            "document identity does not match canonical bytes",
+            usage,
+        ));
+    }
+    let definition_digest =
+        parse_digest_hex(&envelope.authority.definition_digest).ok_or_else(|| {
+            Error::new(
+                ErrorCode::InvalidSelection,
+                "owner envelope definition digest is malformed",
+                usage,
+            )
+        })?;
+    let predecessor = envelope.predecessor.map(Identity::new);
+    Ok(Document {
+        contract,
+        identity,
+        revision: envelope.revision,
+        predecessor,
+        authority: AuthoritySelection {
+            definition_identity: Identity::new(envelope.authority.definition_identity),
+            definition_revision: Identity::new(envelope.authority.definition_revision),
+            definition_digest,
+        },
+        subject: SubjectSelection {
+            scope_identity: Identity::new(envelope.subject.scope_identity),
+            population_identity: Identity::new(envelope.subject.population_identity),
+        },
+        bytes: bytes.to_vec(),
+        usage,
+    })
+}
+
 pub(crate) fn read_exact_preflighted<P>(
     contract: &'static str,
     bytes: &[u8],
@@ -1160,7 +1253,8 @@ fn validate_context(contract: &'static str, context: Context<'_>) -> Result<()> 
             if context.revision > prior.revision
                 && prior.contract == contract
                 && prior.authority == *context.authority
-                && prior.subject == *context.subject
+                && (context.allow_predecessor_subject_change
+                    || prior.subject == *context.subject)
                 && prior.identity.valid() => {}
         None => {
             return Err(Error::new(
@@ -1263,6 +1357,22 @@ pub(crate) fn assert_closed_schema(bytes: &[u8], contract: &str) {
 
 pub(crate) fn digest_hex(digest: &Digest) -> String {
     hex(digest.as_bytes())
+}
+
+fn parse_digest_hex(value: &str) -> Option<Digest> {
+    if value.len() != 64
+        || !value
+            .bytes()
+            .all(|byte| byte.is_ascii_hexdigit() && !byte.is_ascii_uppercase())
+    {
+        return None;
+    }
+    let mut bytes = [0; 32];
+    for (index, byte) in bytes.iter_mut().enumerate() {
+        let start = index.checked_mul(2)?;
+        *byte = u8::from_str_radix(value.get(start..start + 2)?, 16).ok()?;
+    }
+    Some(Digest::new(bytes))
 }
 
 fn hex(bytes: &[u8]) -> String {

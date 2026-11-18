@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:agent-ix:filament-observation:progress-admission-request:1",
+  "title": "Progress admission request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["contract", "package", "producer", "binding", "expected_subject", "relationships", "required_relationships", "scope", "limits", "authority", "subject", "revision", "progress", "progress_document", "observation_source"],
+  "properties": {
+    "contract": {"const": "filament.observation.progress-admission-request/v1"},
+    "package": {"type": "object"},
+    "producer": {"type": "object"},
+    "binding": {"type": "object"},
+    "expected_subject": {"type": "object"},
+    "relationships": {"type": "array"},
+    "required_relationships": {"type": "array"},
+    "scope": {"type": "object"},
+    "limits": {"type": "object"},
+    "records": {"type": "array"},
+    "authority": {"type": "object"},
+    "subject": {"type": "object"},
+    "revision": {"type": "string", "pattern": "^[1-9][0-9]*$"},
+    "predecessor_document": {"type": "string"},
+    "progress": {"type": "object"},
+    "progress_document": {"type": "string"},
+    "observation_source": {"type": "string", "minLength": 1}
+  }
+}

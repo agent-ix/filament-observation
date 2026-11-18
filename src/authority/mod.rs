@@ -10,6 +10,7 @@
 mod common;
 
 pub mod activation;
+pub mod admission;
 pub mod availability;
 pub mod bundle;
 pub mod capture;
