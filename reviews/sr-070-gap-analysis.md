@@ -176,3 +176,45 @@ Repository-driven gap analysis for the frozen PR #61. The computed matrix report
 - Evidence: no run evidence for all 114 criteria; no evidence-status distinction is asserted as a behavior gap.
 - Untraced behaviors: 0 in the reviewed API surface; new admission and completeness behavior map to FR-014 and FR-013. Ignored test stubs: 18 test functions across `tests/progress_admission.rs` and `tests/completeness_revision.rs`.
 - Semantic review: skipped.
+
+## Dispositions
+
+| FND | Outcome | Reason |
+| --- | --- | --- |
+| FND-001 | deferred | QSL-2382 owns the remaining NFR-001-AC-3 trace coverage. |
+| FND-002 | deferred | QSL-2382 owns the remaining NFR-001-AC-4 trace coverage. |
+| FND-003 | deferred | QSL-2382 owns the remaining NFR-001-AC-5 trace coverage. |
+| FND-004 | deferred | QSL-2382 owns the remaining NFR-001-M-1 trace coverage. |
+| FND-005 | deferred | QSL-2382 owns the remaining NFR-001-M-2 trace coverage. |
+| FND-006 | deferred | QSL-2382 owns the remaining NFR-001-M-3 trace coverage. |
+| FND-007 | deferred | QSL-2382 owns the remaining NFR-001-M-4 trace coverage. |
+| FND-008 | deferred | QSL-2382 owns the remaining NFR-001-M-5 trace coverage. |
+| FND-009 | deferred | QSL-2382 owns the remaining NFR-001-M-6 trace coverage. |
+| FND-010 | deferred | QSL-2382 owns the remaining NFR-002-AC-1 trace coverage. |
+| FND-011 | deferred | QSL-2382 owns the remaining NFR-002-AC-2 trace coverage. |
+| FND-012 | deferred | QSL-2382 owns the remaining NFR-002-M-1 trace coverage. |
+| FND-013 | deferred | QSL-2382 owns the remaining NFR-002-M-2 trace coverage. |
+| FND-014 | deferred | QSL-2382 owns the remaining NFR-003-M-1 trace coverage. |
+| FND-015 | deferred | QSL-2382 owns the remaining NFR-003-M-2 trace coverage. |
+| FND-016 | deferred | QSL-2382 owns the remaining NFR-003-M-3 trace coverage. |
+| FND-017 | deferred | QSL-2382 owns the remaining NFR-003-M-4 trace coverage. |
+| FND-018 | deferred | QSL-2382 owns the remaining NFR-003-M-5 trace coverage. |
+| FND-019 | fixed | `#[trace("TC-015", "FR-013-AC-4")]` is now on an active executable revision test. |
+| FND-020 | fixed | `#[trace("TC-015", "FR-013-AC-6")]` is now on an active executable revision test. |
+| FND-021 | fixed | `#[trace("TC-016", "FR-014-AC-1")]` is now on an active executable admission test. |
+| FND-022 | fixed | `#[trace("TC-016", "FR-014-AC-2")]` is now on an active executable admission test. |
+| FND-023 | fixed | `#[trace("TC-016", "FR-014-AC-4")]` is now on an active executable admission test. |
+| FND-024 | fixed | `#[trace("TC-016", "FR-014-AC-5")]` is now on an active executable admission test. |
+| FND-025 | fixed | `#[trace("TC-016", "FR-014-AC-6")]` is now on an active executable admission test. |
+| FND-026 | fixed | `#[trace("TC-016", "FR-014-AC-7")]` is now on an active executable admission test. |
+| FND-027 | fixed | `#[trace("TC-016", "FR-014-AC-8")]` is now on an active executable admission test. |
+| FND-028 | fixed | `#[trace("TC-016", "FR-014-AC-10")]` covers the revised three-record full-history input. |
+| FND-029 | fixed | `#[trace("TC-016", "FR-014-AC-12")]` is now on an active executable watermark test; missing AC-12 variants are tracked as SR-069 FND-006. |
+| FND-030 | fixed | `#[trace("TC-015", "FR-013-AC-7")]` now refers to the merged FR-013-AC-7 matrix row. |
+| FND-031 | deferred | QSL-2382 owns cleanup of the six stale IT-001 trace IDs. |
+
+### Current matrix snapshot
+
+- Recomputed at reviewed head `160ebab778eb299383189db59fccf12834bcf97c`: 96 tagged, 18 untagged, 0 tagged-by-ignored-test, 1 method-without-symbol (115 criteria total).
+- FR-013-AC-7 and FR-014-AC-10, AC-12, and AC-14 are tagged by active tests. AC-10 covers the full qualified history and all three AC-14 qualification outcomes.
+- QSL-2382 owns the 18 remaining untagged NFR criteria and six stale IT-001 trace IDs. Quoin's matrix reports no test bound only by ignored tests.

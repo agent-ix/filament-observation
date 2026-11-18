@@ -64,3 +64,34 @@ Ticket: QSL-1867. Reviewed the frozen PR #61 cross-ticket diff against merged FR
 - `cargo clippy --locked --all-targets -- -D warnings`: failed with 15 errors, including the diagnostics above.
 - `RUSTDOCFLAGS="-D warnings" cargo doc --locked --no-deps`: passed.
 - `cargo deny check`: failed because the new `filament-exact` Git source is not allowed and its AGPL license has no exception in `deny.toml`.
+
+## New findings (disposition pass 1)
+
+| ID | Severity | Summary | Refs |
+| --- | --- | --- | --- |
+| FND-006 | medium | The active AC-12 test checks a changed byte and boundary +1, but omits the required predecessor-revision, different-predecessor, and empty-history mutations. The merged criterion requires each mutation to refuse with the strict reader's own error and no capability. | tests/support/progress_admission.rs:632-677 |
+| FND-007 | medium | The focused authority suite fails because emitted typed bundle wire does not satisfy the advertised schema; the same test passes on current main. | tests/authority.rs:3136 |
+| FND-008 | medium | The focused authority suite fails because emitted v2 wire does not satisfy the advertised schema; the same test passes on current main. | tests/authority.rs:3208 |
+| FND-009 | medium | The exact query-limit test's measured `input_bytes` is 47765, but its expected value is 47309; the same test passes on current main. | tests/authority.rs:6020 |
+
+## Dispositions
+
+| FND | Outcome | Reason |
+| --- | --- | --- |
+| FND-001 | fixed | `#[trace("TC-016", "FR-014-AC-10")]` and executable AC-10/AC-14 tests replace the ignored panic stubs. |
+| FND-002 | rejected | Merged FR-013-AC-7 scopes carry-forward to prior-held facts for members included in the successor population; the finding's omitted-successor-member case is outside that rule. |
+| FND-003 | fixed | `cause: Box<AdmissionCause>,` and `cause: Box<RevisionCause>,` keep the typed error variants boxed; the redundant local is gone. |
+| FND-004 | fixed | `{ allow = ["AGPL-3.0-or-later"], crate = "filament-exact" },` and `"https://github.com/agent-ix/filament-exact",` are present in `deny.toml`. |
+| FND-005 | fixed | `use filament_observation::authority::{` followed by the sorted authority imports now passes rustfmt. |
+| FND-006 | still-open | FR-014-AC-12 still lacks tests for predecessor revision, another predecessor, and empty-history mutations. |
+| FND-007 | still-open | This test fails on the reviewed PR head and passes on current main; emitted typed wire/schema compatibility remains broken by the PR diff. |
+| FND-008 | still-open | This test fails on the reviewed PR head and passes on current main; emitted v2 wire/schema compatibility remains broken by the PR diff. |
+| FND-009 | still-open | This test fails on the reviewed PR head and passes on current main; the exact usage fixture expectation is stale on the PR diff. |
+
+## Disposition verification
+
+- Reviewed implementation head: `160ebab778eb299383189db59fccf12834bcf97c`; base: `01961e56c55c60de67a6486896df5e51a1ec09b2`.
+- `cargo test --locked --test authority progress_admission::`: 13 passed, 0 failed. This includes the full-history AC-10 case and all three AC-14 outcomes.
+- `cargo test --locked --test authority`: 83 passed, 3 failed. Remaining failures are `tc009_bundle_schema_accepts_emitted_typed_wire_and_rejects_role_mismatches`, `tc009_v2_round_trips_only_the_exact_structurally_empty_profile`, and `tc011_each_query_limit_admits_exact_and_refuses_one_over` (expected `input_bytes` 47309, actual 47765).
+- On current main `01961e56c55c60de67a6486896df5e51a1ec09b2`, each of those three tests passed when run separately through locked-build.
+- `cargo clippy --locked --all-targets -- -D warnings`, `cargo fmt --check`, both review-artifact `quire validate` commands, and `git diff --check` passed at the reviewed PR head.
