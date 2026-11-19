@@ -315,13 +315,13 @@ fn tc007_ingestion_position_and_midpoint_are_not_semantic_order_inputs() {
         let left_selection = authority::partial::Selection::new(
             id("observation:left"),
             PossibilitySet::new(false, true, ValueReason::Known).unwrap(),
-            left,
+            left.clone(),
             left_ingestion_position,
         );
         let right_selection = authority::partial::Selection::new(
             id("observation:right"),
             PossibilitySet::new(true, false, ValueReason::Known).unwrap(),
-            right,
+            right.clone(),
             right_ingestion_position,
         );
         assert_eq!(
