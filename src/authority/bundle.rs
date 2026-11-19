@@ -18,27 +18,19 @@ use crate::{Digest, Identity};
 
 /// Immutable bundle-contract label.
 pub const CONTRACT: &str = "filament.observation-authority/v1";
-/// Pinned JSON Schema bytes for [`CONTRACT`].
+/// JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-authority-v1.schema.json");
-/// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "263dd4fdfd4b8525ece2170f361695eb13de2ced2804bdafb43e8c08f052e14d";
 /// Immutable structurally empty bundle-contract label.
 pub const V2_CONTRACT: &str = "filament.observation-authority/v2";
-/// Pinned JSON Schema bytes for [`V2_CONTRACT`].
+/// JSON Schema bytes for [`V2_CONTRACT`].
 pub const V2_SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-authority-v2.schema.json");
-/// Lowercase SHA-256 digest of [`V2_SCHEMA_BYTES`].
-pub const V2_SCHEMA_SHA256: &str =
-    "1f987d0c3ed837af13b1c1dd1df8a0e993d5b9006f14a2f5cba049d1fc6a3ab3";
 /// Immutable lineage-view contract label.
 pub const LINEAGE_CONTRACT: &str = "filament.observation-authority-lineage/v1";
-/// Pinned JSON Schema bytes for [`LINEAGE_CONTRACT`].
+/// JSON Schema bytes for [`LINEAGE_CONTRACT`].
 pub const LINEAGE_SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-authority-lineage-v1.schema.json");
-/// Lowercase SHA-256 digest of [`LINEAGE_SCHEMA_BYTES`].
-pub const LINEAGE_SCHEMA_SHA256: &str =
-    "31d376fae6f16cb1f03cdf5a42e5ad5002af0670e5225af7a29c2c50f620d721";
 
 /// Closed semantic role vocabulary for a complete I07 authority bundle.
 #[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd, Serialize, Deserialize)]
@@ -1902,14 +1894,19 @@ mod tests {
     use super::*;
 
     #[test]
-    fn schema_digest_is_pinned() {
-        assert_eq!(common::schema_sha256(SCHEMA_BYTES), SCHEMA_SHA256);
+    fn schemas_are_closed() {
         common::assert_closed_schema(SCHEMA_BYTES, CONTRACT);
-        assert_eq!(common::schema_sha256(V2_SCHEMA_BYTES), V2_SCHEMA_SHA256);
         common::assert_closed_schema(V2_SCHEMA_BYTES, V2_CONTRACT);
-        assert_eq!(
-            common::schema_sha256(LINEAGE_SCHEMA_BYTES),
-            LINEAGE_SCHEMA_SHA256
-        );
+        common::assert_closed_schema_with_required_count(LINEAGE_SCHEMA_BYTES, LINEAGE_CONTRACT, 7);
+    }
+
+    #[test]
+    fn embedded_record_v2_schema_allows_absent_ingestion_and_lateness() {
+        let schema: serde_json::Value =
+            serde_json::from_slice(SCHEMA_BYTES).expect("bundle schema is valid JSON");
+        let payload = &schema["$defs"]["_owner_record_v2"]["properties"]["payload"]["properties"];
+
+        assert_eq!(payload["ingestion_time_nanos"]["oneOf"][0]["type"], "null");
+        assert_eq!(payload["lateness"]["oneOf"][0]["type"], "null");
     }
 }

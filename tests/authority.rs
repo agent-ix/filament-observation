@@ -39,6 +39,33 @@ fn qualified() -> Box<QualifiedObservation> {
     qualified_with_window("window:O1")
 }
 
+fn qualified_without_ingestion_time() -> Box<QualifiedObservation> {
+    let admitted = qualified();
+    let mut request = AdmissionRequest {
+        package: admitted.package().clone(),
+        producer: admitted.producer().clone(),
+        binding: admitted.binding().clone(),
+        expected_subject: admitted.expected_subject().clone(),
+        relationships: admitted.relationships().to_vec(),
+        required_relationships: admitted.required_relationships().to_vec(),
+        scope: admitted.scope().clone(),
+        records: admitted.records().to_vec(),
+        limits: admitted.limits(),
+    };
+    request.records[0].ingestion_time_nanos = None;
+    let identity =
+        authority::observation::record_identity(&request.records[0], Limits::owner_max())
+            .expect("derive record identity without an ingestion time");
+    request.records[0].identity = identity.clone();
+    request.scope.members[0].record_identity = identity;
+    authority::population::assign_request_identities(&mut request, Limits::owner_max())
+        .expect("seal population with absent ingestion time");
+    match admit(request) {
+        AdmissionOutcome::Available { observation } => observation,
+        other => panic!("no-ingestion-time fixture admission failed: {other:?}"),
+    }
+}
+
 fn qualified_with_two_records() -> Box<QualifiedObservation> {
     let admitted = qualified();
     let mut request = AdmissionRequest {
@@ -56,7 +83,7 @@ fn qualified_with_two_records() -> Box<QualifiedObservation> {
     next.identity = id("unsealed-record:O2");
     next.anchor = Anchor::TimestampNanos(15);
     next.event_time_nanos = 15;
-    next.ingestion_time_nanos = 16;
+    next.ingestion_time_nanos = Some(16);
     let identity = authority::observation::record_identity(&next, Limits::owner_max())
         .expect("derive second record identity");
     next.identity = identity.clone();
@@ -101,7 +128,7 @@ fn qualified_with_three_records() -> Box<QualifiedObservation> {
     next.identity = id("unsealed-record:O3");
     next.anchor = Anchor::TimestampNanos(40);
     next.event_time_nanos = 40;
-    next.ingestion_time_nanos = 41;
+    next.ingestion_time_nanos = Some(41);
     let identity = authority::observation::record_identity(&next, Limits::owner_max())
         .expect("derive third record identity");
     next.identity = identity.clone();
@@ -227,7 +254,7 @@ fn qualified_with_window_closure_and_member(
             visibility: Visibility::External,
             anchor: Anchor::TimestampNanos(10),
             event_time_nanos: 10,
-            ingestion_time_nanos: 11,
+            ingestion_time_nanos: Some(11),
             causal_relationship_identity: Some(causal_identity),
             clock_identity: id("clock:event-time"),
             clock_revision: id("1"),
@@ -314,7 +341,7 @@ fn partial_selection(record: &AdmittedRecord) -> authority::partial::Selection {
             Limits::owner_max(),
         )
         .expect("valid partial interval"),
-        11,
+        Some(11),
     )
 }
 
@@ -487,7 +514,7 @@ fn record_candidate_wire(record: &AdmittedRecord) -> serde_json::Value {
         "visibility": visibility,
         "anchor": anchor_wire(record.anchor),
         "event_time_nanos": record.event_time_nanos.to_string(),
-        "ingestion_time_nanos": record.ingestion_time_nanos.to_string(),
+        "ingestion_time_nanos": record.ingestion_time_nanos.map(|value| value.to_string()),
         "causal_relationship_identity": record
             .causal_relationship_identity
             .as_ref()
@@ -1605,7 +1632,7 @@ fn tc004_each_public_reader_requires_exact_independent_selections() {
         }
     );
     assert_eq!(observation.event_time_nanos(), "10");
-    assert_eq!(observation.ingestion_time_nanos(), "11");
+    assert_eq!(observation.ingestion_time_nanos(), Some("11"));
     let relationship = observation
         .causal_relationship()
         .expect("the exact causal relationship is retained");
@@ -1635,7 +1662,7 @@ fn tc004_each_public_reader_requires_exact_independent_selections() {
     );
     assert_eq!(
         observation.lateness(),
-        authority::observation::Lateness::OnTime
+        Some(authority::observation::Lateness::OnTime)
     );
     let expected_cutoff = authority::observation::cutoff_identity(&cutoff(40), Limits::owner_max())
         .expect("derive cutoff identity");
@@ -1906,6 +1933,40 @@ fn tc004_each_public_reader_requires_exact_independent_selections() {
         .code(),
         authority::ErrorCode::ExpectedMismatch
     );
+}
+
+#[trace("TC-004", "FR-004-AC-1")]
+#[test]
+fn tc004_absent_ingestion_time_is_null_and_is_not_classified() {
+    let original = qualified();
+    let qualified = qualified_without_ingestion_time();
+    let record = &qualified.records()[0];
+    assert_ne!(record.identity, original.records()[0].identity);
+    assert_eq!(record.ingestion_time_nanos, None);
+
+    let owner = owner();
+    let subject = subject(&qualified);
+    let context = Context::new(History::batch(&qualified), &owner, &subject, 1, None);
+    let selection = authority::observation::Selection::new(record.identity.clone(), cutoff(40));
+    let document = authority::observation::derive(context, &selection, Limits::owner_max())
+        .expect("derive record with unknown ingestion instant");
+    let wire: serde_json::Value =
+        serde_json::from_slice(document.bytes()).expect("canonical observation JSON");
+    let schema: serde_json::Value =
+        serde_json::from_slice(authority::observation::SCHEMA_BYTES).expect("record schema JSON");
+    let validator = jsonschema::validator_for(&schema).expect("record schema compiles");
+    assert!(validator.is_valid(&wire));
+    assert_eq!(
+        wire["payload"]["ingestion_time_nanos"],
+        serde_json::Value::Null
+    );
+    assert_eq!(wire["payload"]["lateness"], serde_json::Value::Null);
+
+    let view =
+        authority::observation::read(document.bytes(), context, &selection, Limits::owner_max())
+            .expect("strict-read unknown ingestion instant");
+    assert_eq!(view.payload().ingestion_time_nanos(), None);
+    assert_eq!(view.payload().lateness(), None);
 }
 
 #[trace("TC-003", "FR-003-AC-2", "TC-004", "FR-004-AC-3")]
@@ -2536,7 +2597,7 @@ fn tc004_boundary_mapping_is_exact_and_late_classification_is_owner_derived() {
     .expect("strict-read late correction");
     assert_eq!(
         late_view.payload().lateness(),
-        authority::observation::Lateness::Late
+        Some(authority::observation::Lateness::Late)
     );
     assert_eq!(
         late_view.payload().observation_identity(),
@@ -3739,7 +3800,7 @@ fn query_request_in_scope(
             visibility: Visibility::External,
             anchor,
             event_time_nanos: *event_time_nanos,
-            ingestion_time_nanos: event_time_nanos + 1,
+            ingestion_time_nanos: Some(event_time_nanos + 1),
             causal_relationship_identity: Some(relationship_identity),
             clock_identity: id("clock:event-time"),
             clock_revision: id("1"),

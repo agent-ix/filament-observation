@@ -544,6 +544,26 @@ fn mixed_runtime_and_record_lines_admit_and_record_only_keeps_empty_steps() {
     assert_eq!(record_only.qualified(), qualified.as_ref());
 }
 
+#[trace("TC-016", "FR-014-AC-8")]
+#[test]
+fn record_candidate_line_preserves_null_ingestion_time() {
+    let qualified = qualified_without_ingestion_time();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let context = Context::new(History::batch(&qualified), &owner, &subject, 1, None);
+    let document = authority::progress::derive(
+        context,
+        &progress_authority_selection(),
+        Limits::owner_max(),
+    )
+    .expect("derive progress document for no-ingestion record");
+    let request = progress_admission_request_wire(&qualified, &document, false);
+    let lines = [record_candidate_wire(&qualified.records()[0])];
+
+    let admitted = admit_lines(&request, &lines).expect("null-ingestion record candidate admits");
+    assert_eq!(admitted.qualified().records()[0].ingestion_time_nanos, None);
+}
+
 #[trace("TC-016", "FR-014-AC-14")]
 #[test]
 fn qualification_uses_the_complete_event_record_population() {
@@ -580,7 +600,7 @@ fn qualification_uses_the_complete_event_record_population() {
     nonmember.identity = id("unsealed-record:ambient");
     nonmember.anchor = Anchor::TimestampNanos(50);
     nonmember.event_time_nanos = 50;
-    nonmember.ingestion_time_nanos = 51;
+    nonmember.ingestion_time_nanos = Some(51);
     nonmember.identity = authority::observation::record_identity(&nonmember, Limits::owner_max())
         .expect("derive ambient record identity");
     let nonmember_line = event_line(&nonmember, "4");

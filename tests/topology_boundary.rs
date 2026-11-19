@@ -107,7 +107,7 @@ fn request_for(
             visibility: Visibility::External,
             anchor,
             event_time_nanos: 0,
-            ingestion_time_nanos: 0,
+            ingestion_time_nanos: Some(0),
             causal_relationship_identity: None,
             clock_identity: id(clock_identity),
             clock_revision: id("1"),
@@ -260,7 +260,7 @@ fn tc006_retains_loops_cycles_and_disconnected_components_without_inference() {
         "clock:topology",
     );
     reordered.records[0].event_time_nanos = 999;
-    reordered.records[0].ingestion_time_nanos = -999;
+    reordered.records[0].ingestion_time_nanos = Some(-999);
     reordered.relationships = vec![backward, self_loop, forward];
     reordered.limits.max_relationships = 3;
     let reordered = qualified(seal(reordered));

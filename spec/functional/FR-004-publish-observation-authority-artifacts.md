@@ -51,6 +51,14 @@ because their v1 shapes cannot retain the complete FR-287 producer authority. Th
 v1 schema files remain pinned historical bytes; the other seven contracts and
 the explicit-members input remain v1.
 
+Before the first release, contract labels and schema versions remain in place
+while their contracts are revised; identity derivation changes with the revised
+contract. After release, published contract schema bytes and identity-preimage
+labels are immutable and a breaking change requires a successor version. The
+pre-release record v2 contract requires `ingestion_time_nanos` to remain a
+present member whose value is either an integer string or `null`. When it is
+`null`, derived `lateness` is also `null` because no arrival watermark exists.
+
 Availability admits exactly `available`, `not-yet-observed`,
 `producer-unavailable`, and `contract-unavailable`. Progress and closure admit
 only `open` and `closed`. Completeness admits only `complete`, `incomplete`, and
@@ -139,7 +147,7 @@ adapter, callback, protocol-result vocabulary or Boolean coercion is admitted.
 
 | ID | Criteria | Verification |
 | --- | --- | --- |
-| FR-004-AC-1 | Each of the nine exact contracts publishes immutable schema bytes, deterministic canonical bytes/identity and a public strict reader returning only its constructor-private view. | Test (TC-004) |
+| FR-004-AC-1 | Each of the nine exact contracts publishes schema bytes, deterministic canonical bytes/identity and a public strict reader returning only its constructor-private view. Pre-release revisions update the contract and identity derivation in place; after release, schema bytes and identity-preimage labels are immutable. | Test (TC-004) |
 | FR-004-AC-2 | Batch and incremental derivation produce byte-identical documents for equal qualified history and selections; every semantic mutation changes only the applicable identity. | Test (TC-004) |
 | FR-004-AC-3 | Every required field is independently omitted, duplicated, reordered and cross-wired; unknown fields/labels/contracts, trailing/noncanonical bytes and same identity on unequal bytes refuse without partial authority. | Test (TC-004) |
 | FR-004-AC-4 | Exact and one-over byte/depth/string/population/position/capture/source/work bounds admit or resource-refuse before excess retention. | Test (TC-004) |

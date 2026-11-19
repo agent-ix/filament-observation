@@ -225,7 +225,8 @@ const ROWS: &[AuditRow] = &[
         bound_source: SourceId::Common,
         limit: "max_output_bytes",
         precheck_or_charge: "pub(crate) fn build_document<P>",
-        checked_conversion_or_arithmetic: ".max(payload.ingestion_position.len())",
+        checked_conversion_or_arithmetic:
+            ".max(payload.ingestion_position.as_deref().map_or(0, str::len))",
         evidence_source: SourceId::PartialEvidence,
         evidence_test: "tc007_partial_fact_is_canonical_strictly_read_and_fail_closed",
     },
