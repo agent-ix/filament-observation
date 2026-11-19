@@ -1935,7 +1935,7 @@ fn tc004_each_public_reader_requires_exact_independent_selections() {
     );
 }
 
-#[trace("TC-004")]
+#[trace("TC-004", "FR-004-AC-1")]
 #[test]
 fn tc004_absent_ingestion_time_is_null_and_is_not_classified() {
     let original = qualified();

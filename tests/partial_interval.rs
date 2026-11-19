@@ -513,7 +513,7 @@ fn tc007_partial_fact_is_canonical_strictly_read_and_fail_closed() {
     assert_eq!(error.code(), ErrorCode::ExpectedMismatch);
 }
 
-#[trace("TC-007", "FR-007-AC-1")]
+#[trace("TC-007")]
 #[test]
 fn tc007_partial_fact_retains_absent_ingestion_position_as_null() {
     let qualified = qualified();
