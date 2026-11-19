@@ -1897,6 +1897,7 @@ mod tests {
     fn schemas_are_closed() {
         common::assert_closed_schema(SCHEMA_BYTES, CONTRACT);
         common::assert_closed_schema(V2_SCHEMA_BYTES, V2_CONTRACT);
+        common::assert_closed_schema_with_required_count(LINEAGE_SCHEMA_BYTES, LINEAGE_CONTRACT, 7);
     }
 
     #[test]

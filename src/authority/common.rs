@@ -1345,13 +1345,22 @@ pub(crate) fn schema_sha256(bytes: &[u8]) -> String {
 
 #[cfg(test)]
 pub(crate) fn assert_closed_schema(bytes: &[u8], contract: &str) {
+    assert_closed_schema_with_required_count(bytes, contract, 8);
+}
+
+#[cfg(test)]
+pub(crate) fn assert_closed_schema_with_required_count(
+    bytes: &[u8],
+    contract: &str,
+    required_count: usize,
+) {
     let schema: serde_json::Value = serde_json::from_slice(bytes).expect("schema is JSON");
     assert_eq!(schema["additionalProperties"], false);
     assert_eq!(schema["properties"]["contract"]["const"], contract);
     assert_eq!(
         schema["required"].as_array().map(Vec::len),
-        Some(8),
-        "owner envelope has exactly eight required fields"
+        Some(required_count),
+        "schema has exactly the expected number of required fields"
     );
 }
 
