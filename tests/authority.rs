@@ -341,7 +341,7 @@ fn partial_selection(record: &AdmittedRecord) -> authority::partial::Selection {
             Limits::owner_max(),
         )
         .expect("valid partial interval"),
-        Some(11),
+        11,
     )
 }
 

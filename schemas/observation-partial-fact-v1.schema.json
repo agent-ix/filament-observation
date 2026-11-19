@@ -13,7 +13,7 @@
         {"type": "object", "additionalProperties": false, "required": ["can_be_false", "can_be_true", "reason"], "properties": {"can_be_false": {"const": true}, "can_be_true": {"const": true}, "reason": {"const": "conflicting"}}}
       ]},
       "interval": {"type": "object", "additionalProperties": false, "required": ["clock_identity", "clock_revision", "unit", "earliest", "latest"], "properties": {"clock_identity": {"type": "string", "minLength": 1}, "clock_revision": {"type": "string", "minLength": 1}, "unit": {"type": "string", "minLength": 1}, "earliest": {"$ref": "observation-record-v1.schema.json#/$defs/integerText"}, "latest": {"$ref": "observation-record-v1.schema.json#/$defs/integerText"}}},
-      "ingestion_position": {"oneOf": [{"type": "null"}, {"$ref": "observation-record-v1.schema.json#/$defs/integerText"}]}
+      "ingestion_position": {"$ref": "observation-record-v1.schema.json#/$defs/integerText"}
     }},
     "predecessor": {"$ref": "observation-record-v1.schema.json#/$defs/predecessor"}, "limits": {"$ref": "observation-record-v1.schema.json#/$defs/limits"}
   }
