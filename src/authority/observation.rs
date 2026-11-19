@@ -322,7 +322,7 @@ impl RecordView {
         &self.event_time_nanos
     }
 
-    /// Returns canonical ingestion-time nanoseconds text.
+    /// Returns canonical ingestion-time nanoseconds text when an instant was recorded.
     #[must_use]
     pub fn ingestion_time_nanos(&self) -> Option<&str> {
         self.ingestion_time_nanos.as_deref()
@@ -353,7 +353,7 @@ impl RecordView {
         }
     }
 
-    /// Returns the owner-derived FR-294 lateness classification.
+    /// Returns the owner-derived FR-294 classification when an ingestion instant was recorded.
     #[must_use]
     pub const fn lateness(&self) -> Option<Lateness> {
         self.lateness

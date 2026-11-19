@@ -322,7 +322,7 @@ impl PartialView {
         }
     }
 
-    /// Returns the retained ingestion position, which is not an order input.
+    /// Returns the retained ingestion position when present; it is not an order input.
     #[must_use]
     pub fn ingestion_position(&self) -> Option<&str> {
         self.ingestion_position.as_deref()
