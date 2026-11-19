@@ -1698,7 +1698,14 @@
               "$ref": "#/$defs/integerText"
             },
             "ingestion_time_nanos": {
-              "$ref": "#/$defs/integerText"
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/$defs/integerText"
+                }
+              ]
             },
             "causal_relationship": {
               "oneOf": [
@@ -1714,9 +1721,16 @@
               "$ref": "#/$defs/clock"
             },
             "lateness": {
-              "enum": [
-                "on-time",
-                "late"
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "enum": [
+                    "on-time",
+                    "late"
+                  ]
+                }
               ]
             },
             "cutoff_identity": {

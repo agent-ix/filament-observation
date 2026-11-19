@@ -22,7 +22,7 @@ pub const CONTRACT: &str = "filament.observation-authority/v1";
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-authority-v1.schema.json");
 /// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "263dd4fdfd4b8525ece2170f361695eb13de2ced2804bdafb43e8c08f052e14d";
+pub const SCHEMA_SHA256: &str = "9ff4e954f9b7b00335e124ed721f86f07aec93f3f45c4e9e4c2add56404e9943";
 /// Immutable structurally empty bundle-contract label.
 pub const V2_CONTRACT: &str = "filament.observation-authority/v2";
 /// Pinned JSON Schema bytes for [`V2_CONTRACT`].
@@ -1911,5 +1911,15 @@ mod tests {
             common::schema_sha256(LINEAGE_SCHEMA_BYTES),
             LINEAGE_SCHEMA_SHA256
         );
+    }
+
+    #[test]
+    fn embedded_record_v2_schema_allows_absent_ingestion_and_lateness() {
+        let schema: serde_json::Value =
+            serde_json::from_slice(SCHEMA_BYTES).expect("bundle schema is valid JSON");
+        let payload = &schema["$defs"]["_owner_record_v2"]["properties"]["payload"]["properties"];
+
+        assert_eq!(payload["ingestion_time_nanos"]["oneOf"][0]["type"], "null");
+        assert_eq!(payload["lateness"]["oneOf"][0]["type"], "null");
     }
 }

@@ -30,6 +30,7 @@ Population admission additionally strict-reads
 The record v1 schema remains committed for its original contract. Record v2
 represents an absent ingestion instant as JSON `null`; population v2 retains
 authority, revision and opaque-byte members.
-The authority-bundle v1 schema likewise remains immutable. Its v2 successor is
-restricted to the exact seven-role structurally empty population profile; it
-does not manufacture record-dependent sentinel facts.
+The authority-bundle v1 schema bytes become immutable at first release; before
+release, its embedded record v2 schema tracks the in-place record contract. Its
+v2 successor is restricted to the exact seven-role structurally empty
+population profile; it does not manufacture record-dependent sentinel facts.
