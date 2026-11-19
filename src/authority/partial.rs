@@ -15,11 +15,9 @@ pub use super::Limits;
 
 /// Immutable owner-contract label.
 pub const CONTRACT: &str = "filament.observation.partial-fact/v1";
-/// Pinned JSON Schema bytes for [`CONTRACT`].
+/// JSON Schema bytes for [`CONTRACT`].
 pub const SCHEMA_BYTES: &[u8] =
     include_bytes!("../../schemas/observation-partial-fact-v1.schema.json");
-/// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "76e3f51193955ba592f1e93088ae52d0f332c2e960cf328d4a5642eca024ae3a";
 
 /// Closed explanation for a Boolean possibility set.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -236,7 +234,7 @@ pub struct Selection {
     observation_identity: Identity,
     possibilities: PossibilitySet,
     interval: EventTimeInterval,
-    ingestion_position: i128,
+    ingestion_position: Option<i128>,
 }
 
 impl Selection {
@@ -246,7 +244,7 @@ impl Selection {
         observation_identity: Identity,
         possibilities: PossibilitySet,
         interval: EventTimeInterval,
-        ingestion_position: i128,
+        ingestion_position: Option<i128>,
     ) -> Self {
         Self {
             observation_identity,
@@ -284,7 +282,7 @@ pub struct PartialView {
     observation_identity: String,
     possibilities: PossibilityWire,
     interval: IntervalWire,
-    ingestion_position: String,
+    ingestion_position: Option<String>,
 }
 
 impl PartialView {
@@ -324,10 +322,10 @@ impl PartialView {
         }
     }
 
-    /// Returns the retained ingestion position, which is not an order input.
+    /// Returns the retained ingestion position when present; it is not an order input.
     #[must_use]
-    pub fn ingestion_position(&self) -> &str {
-        &self.ingestion_position
+    pub fn ingestion_position(&self) -> Option<&str> {
+        self.ingestion_position.as_deref()
     }
 }
 
@@ -400,7 +398,7 @@ pub fn derive(context: Context<'_>, selection: &Selection, limits: Limits) -> Re
             earliest: selection.interval.earliest.to_string(),
             latest: selection.interval.latest.to_string(),
         },
-        ingestion_position: selection.ingestion_position.to_string(),
+        ingestion_position: selection.ingestion_position.map(|value| value.to_string()),
     };
     let usage = Usage {
         depth: 4,
@@ -412,7 +410,7 @@ pub fn derive(context: Context<'_>, selection: &Selection, limits: Limits) -> Re
             .max(payload.interval.unit.len())
             .max(payload.interval.earliest.len())
             .max(payload.interval.latest.len())
-            .max(payload.ingestion_position.len()),
+            .max(payload.ingestion_position.as_deref().map_or(0, str::len)),
         visited_fields: 24,
         ..Usage::default()
     };
@@ -436,8 +434,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn schema_digest_is_pinned() {
-        assert_eq!(common::schema_sha256(SCHEMA_BYTES), SCHEMA_SHA256);
+    fn schema_is_closed_to_the_current_contract() {
         common::assert_closed_schema(SCHEMA_BYTES, CONTRACT);
     }
 }

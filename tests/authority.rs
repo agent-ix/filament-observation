@@ -341,7 +341,7 @@ fn partial_selection(record: &AdmittedRecord) -> authority::partial::Selection {
             Limits::owner_max(),
         )
         .expect("valid partial interval"),
-        11,
+        Some(11),
     )
 }
 
@@ -2861,7 +2861,7 @@ fn tc005_qualified_owner_contracts_version_without_mutating_v1() {
     );
     assert_eq!(
         authority::observation::CONTRACT,
-        "filament.observation.record/v3"
+        "filament.observation.record/v2"
     );
     assert_eq!(
         authority::population::CONTRACT,

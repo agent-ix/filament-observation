@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `filament.observation.record/v3` owner artifact.
+//! `filament.observation.record/v2` owner artifact.
 
 use serde::{Deserialize, Serialize};
 
@@ -14,9 +14,9 @@ use crate::{AdmittedRecord, Anchor, Identity, QualifiedSubject, ValueState, Visi
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "filament.observation.record/v3";
+pub const CONTRACT: &str = "filament.observation.record/v2";
 /// JSON Schema bytes for [`CONTRACT`].
-pub const SCHEMA_BYTES: &[u8] = include_bytes!("../../schemas/observation-record-v3.schema.json");
+pub const SCHEMA_BYTES: &[u8] = include_bytes!("../../schemas/observation-record-v2.schema.json");
 
 /// Closed FR-294 timing classification.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -479,7 +479,7 @@ struct ObservationWithoutIdentity<'a> {
 pub fn record_identity(record: &AdmittedRecord, limits: Limits) -> Result<Identity> {
     validate_record(record)?;
     let preimage = ObservationIdentityPreimage {
-        identity_version: "filament.observation.identity/v3",
+        identity_version: "filament.observation.identity/v2",
         observation: without_identity(record),
     };
     common::sha256_jcs(&preimage, limits).map(|value| value.0)

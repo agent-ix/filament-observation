@@ -23,9 +23,9 @@
           {"type": "object", "additionalProperties": false, "required": ["state", "value_type", "canonical_value"], "properties": {"state": {"const": "present"}, "value_type": {"$ref": "#/$defs/text"}, "canonical_value": {"type": "string", "maxLength": 1048576}}},
           {"type": "object", "additionalProperties": false, "required": ["state"], "properties": {"state": {"const": "missing"}}}
         ]}, "visibility": {"enum": ["internal", "external"]}, "anchor": {"$ref": "#/$defs/anchor"},
-        "event_time_nanos": {"$ref": "#/$defs/integerText"}, "ingestion_time_nanos": {"$ref": "#/$defs/integerText"},
+        "event_time_nanos": {"$ref": "#/$defs/integerText"}, "ingestion_time_nanos": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/integerText"}]},
         "causal_relationship": {"oneOf": [{"type": "null"}, {"$ref": "#/$defs/relationship"}]}, "clock": {"$ref": "#/$defs/clock"},
-        "lateness": {"enum": ["on-time", "late"]}, "cutoff_identity": {"$ref": "#/$defs/text"}
+        "lateness": {"oneOf": [{"type": "null"}, {"enum": ["on-time", "late"]}]}, "cutoff_identity": {"$ref": "#/$defs/text"}
       }
     },
     "predecessor": {"$ref": "#/$defs/predecessor"}, "limits": {"$ref": "#/$defs/limits"}
