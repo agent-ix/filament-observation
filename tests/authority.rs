@@ -1965,36 +1965,6 @@ fn tc004_absent_ingestion_time_is_null_and_is_not_classified() {
     assert_eq!(view.payload().lateness(), None);
 }
 
-#[trace("TC-004", "FR-004-AC-3")]
-#[test]
-fn tc004_absent_ingestion_time_is_null_and_is_not_classified() {
-    let original = qualified();
-    let qualified = qualified_without_ingestion_time();
-    let record = &qualified.records()[0];
-    assert_ne!(record.identity, original.records()[0].identity);
-    assert_eq!(record.ingestion_time_nanos, None);
-
-    let owner = owner();
-    let subject = subject(&qualified);
-    let context = Context::new(History::batch(&qualified), &owner, &subject, 1, None);
-    let selection = authority::observation::Selection::new(record.identity.clone(), cutoff(40));
-    let document = authority::observation::derive(context, &selection, Limits::owner_max())
-        .expect("derive record with unknown ingestion instant");
-    let wire: serde_json::Value =
-        serde_json::from_slice(document.bytes()).expect("canonical observation JSON");
-    assert_eq!(
-        wire["payload"]["ingestion_time_nanos"],
-        serde_json::Value::Null
-    );
-    assert_eq!(wire["payload"]["lateness"], serde_json::Value::Null);
-
-    let view =
-        authority::observation::read(document.bytes(), context, &selection, Limits::owner_max())
-            .expect("strict-read unknown ingestion instant");
-    assert_eq!(view.payload().ingestion_time_nanos(), None);
-    assert_eq!(view.payload().lateness(), None);
-}
-
 #[trace("TC-003", "FR-003-AC-2", "TC-004", "FR-004-AC-3")]
 #[test]
 fn tc004_every_required_field_is_missing_duplicate_and_order_strict() {
