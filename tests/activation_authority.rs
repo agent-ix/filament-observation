@@ -175,7 +175,7 @@ fn qualified_with_value_trigger_and_time(
                 visibility: Visibility::External,
                 anchor: Anchor::TimestampNanos(10),
                 event_time_nanos,
-                ingestion_time_nanos: event_time_nanos + 5,
+                ingestion_time_nanos: Some(event_time_nanos + 5),
                 causal_relationship_identity: None,
                 clock_identity: id("clock:event-time"),
                 clock_revision: id("1"),

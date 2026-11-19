@@ -101,7 +101,7 @@ fn qualified() -> Box<QualifiedObservation> {
             visibility: Visibility::External,
             anchor: Anchor::TimestampNanos(10),
             event_time_nanos: 10,
-            ingestion_time_nanos: 15,
+            ingestion_time_nanos: Some(15),
             causal_relationship_identity: None,
             clock_identity: id("clock:event-time"),
             clock_revision: id("1"),
@@ -295,18 +295,41 @@ fn tc007_ingestion_position_and_midpoint_are_not_semantic_order_inputs() {
             id("observation:left"),
             PossibilitySet::new(false, true, ValueReason::Known).unwrap(),
             interval(i128::MIN, 10),
-            ignored_ingestion_position,
+            Some(ignored_ingestion_position),
         );
         let right_selection = authority::partial::Selection::new(
             id("observation:right"),
             PossibilitySet::new(true, false, ValueReason::Known).unwrap(),
             interval(10, i128::MAX),
-            ignored_ingestion_position.saturating_neg(),
+            Some(ignored_ingestion_position.saturating_neg()),
         );
         let actual = left_selection
             .relation_to(&right_selection, Limits::owner_max())
             .expect("same-domain intervals");
         assert_eq!(actual, expected);
+    }
+
+    for (left_ingestion_position, right_ingestion_position) in
+        [(None, None), (None, Some(7)), (Some(7), None)]
+    {
+        let left_selection = authority::partial::Selection::new(
+            id("observation:left"),
+            PossibilitySet::new(false, true, ValueReason::Known).unwrap(),
+            left,
+            left_ingestion_position,
+        );
+        let right_selection = authority::partial::Selection::new(
+            id("observation:right"),
+            PossibilitySet::new(true, false, ValueReason::Known).unwrap(),
+            right,
+            right_ingestion_position,
+        );
+        assert_eq!(
+            left_selection
+                .relation_to(&right_selection, Limits::owner_max())
+                .expect("missing ingestion positions do not order intervals"),
+            expected
+        );
     }
 
     let shifted_midpoints = interval(-1_000, 10)
@@ -330,7 +353,7 @@ fn tc007_partial_fact_is_canonical_strictly_read_and_fail_closed() {
         qualified.records()[0].identity.clone(),
         PossibilitySet::new(true, true, ValueReason::Missing).expect("coherent missing value"),
         fact_interval(),
-        15,
+        Some(15),
     );
 
     let first = authority::partial::derive(context, &selection, Limits::owner_max())
@@ -349,13 +372,13 @@ fn tc007_partial_fact_is_canonical_strictly_read_and_fail_closed() {
     assert_eq!(view.payload().reason(), ValueReason::Missing);
     assert_eq!(view.payload().interval().earliest, "8");
     assert_eq!(view.payload().interval().latest, "12");
-    assert_eq!(view.payload().ingestion_position(), "15");
+    assert_eq!(view.payload().ingestion_position(), Some("15"));
 
     let invalid_selection = authority::partial::Selection::new(
         id("observation:absent"),
         PossibilitySet::new(true, true, ValueReason::Missing).expect("coherent missing value"),
         fact_interval(),
-        15,
+        Some(15),
     );
     let byte_first = authority::partial::read(
         first.bytes(),
@@ -483,9 +506,35 @@ fn tc007_partial_fact_is_canonical_strictly_read_and_fail_closed() {
             Limits::owner_max(),
         )
         .expect("internally valid interval"),
-        15,
+        Some(15),
     );
     let error = authority::partial::derive(context, &cross_wired, Limits::owner_max())
         .expect_err("cross-wired fact must refuse");
     assert_eq!(error.code(), ErrorCode::ExpectedMismatch);
+}
+
+#[trace("TC-007", "FR-007-AC-1")]
+#[test]
+fn tc007_partial_fact_retains_absent_ingestion_position_as_null() {
+    let qualified = qualified();
+    let owner = owner();
+    let subject = subject(&qualified);
+    let context = Context::new(History::batch(&qualified), &owner, &subject, 1, None);
+    let selection = authority::partial::Selection::new(
+        qualified.records()[0].identity.clone(),
+        PossibilitySet::new(true, true, ValueReason::Missing).expect("coherent missing value"),
+        fact_interval(),
+        None,
+    );
+
+    let document = authority::partial::derive(context, &selection, Limits::owner_max())
+        .expect("derive partial fact without ingestion position");
+    let wire: serde_json::Value = serde_json::from_slice(document.bytes()).expect("canonical JSON");
+    assert_eq!(
+        wire["payload"]["ingestion_position"],
+        serde_json::Value::Null
+    );
+    let view = authority::partial::read(document.bytes(), context, &selection, Limits::owner_max())
+        .expect("strict-read absent ingestion position");
+    assert_eq!(view.payload().ingestion_position(), None);
 }

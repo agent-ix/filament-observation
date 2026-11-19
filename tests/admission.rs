@@ -100,7 +100,7 @@ fn request() -> AdmissionRequest {
             visibility: Visibility::External,
             anchor: Anchor::EventPosition(0),
             event_time_nanos: 0,
-            ingestion_time_nanos: 1,
+            ingestion_time_nanos: Some(1),
             causal_relationship_identity: None,
             clock_identity: id("clock:positions"),
             clock_revision: id("1"),
@@ -156,6 +156,19 @@ fn tc001_valid_record_retains_all_selected_premises() {
                 && observation.scope().closure_identity == Some(id("closure:complete"))
                 && observation.scope().closure_digest == Some(digest(5))
                 && observation.limits().max_records == 2)
+    );
+}
+
+#[trace("TC-001", "FR-001-AC-1")]
+#[test]
+fn tc001_record_without_ingestion_instant_is_admitted_without_defaulting() {
+    let mut input = request();
+    input.records[0].ingestion_time_nanos = None;
+    let input = seal(input);
+
+    assert!(
+        matches!(admit(input), AdmissionOutcome::Available { observation }
+        if observation.records()[0].ingestion_time_nanos.is_none())
     );
 }
 
