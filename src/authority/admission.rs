@@ -827,7 +827,8 @@ struct RecordWire {
     visibility: VisibilityWire,
     anchor: AnchorWire,
     event_time_nanos: String,
-    ingestion_time_nanos: String,
+    #[serde(deserialize_with = "required_option")]
+    ingestion_time_nanos: Option<String>,
     #[serde(deserialize_with = "required_option")]
     causal_relationship_identity: Option<Vec<u8>>,
     clock_identity: String,
@@ -931,7 +932,8 @@ struct RecordCandidateLineWire {
     visibility: VisibilityWire,
     anchor: AnchorWire,
     event_time_nanos: String,
-    ingestion_time_nanos: String,
+    #[serde(deserialize_with = "required_option")]
+    ingestion_time_nanos: Option<String>,
     #[serde(deserialize_with = "required_option")]
     causal_relationship_identity: Option<Vec<u8>>,
     clock_identity: String,
@@ -1189,12 +1191,18 @@ fn record_from_wire(
             crate::Anchor::TimestampNanos(instant_nanos)
         }
     };
-    let (Some(event_time_nanos), Some(ingestion_time_nanos), Some(clock_uncertainty_nanos)) = (
+    let (Some(event_time_nanos), Some(clock_uncertainty_nanos)) = (
         parse_decimal(&wire.event_time_nanos, true),
-        parse_decimal(&wire.ingestion_time_nanos, true),
         parse_decimal(&wire.clock_uncertainty_nanos, false),
     ) else {
         return Err(invalid_cause("record integer is not canonical"));
+    };
+    let ingestion_time_nanos = match wire.ingestion_time_nanos {
+        None => None,
+        Some(value) => Some(
+            parse_decimal(&value, true)
+                .ok_or_else(|| invalid_cause("record integer is not canonical"))?,
+        ),
     };
     let subject = subject_from_wire(wire.subject, producer)?;
     Ok(AdmittedRecord {

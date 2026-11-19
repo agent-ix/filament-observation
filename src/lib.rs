@@ -176,7 +176,7 @@ pub struct AdmittedRecord {
     /// Event time remains independent from the carrier anchor and ingestion time.
     pub event_time_nanos: i128,
     /// Ingestion instant retained independently from event time.
-    pub ingestion_time_nanos: i128,
+    pub ingestion_time_nanos: Option<i128>,
     /// Optional explicit causal relationship; timestamps never supply it.
     pub causal_relationship_identity: Option<RelationshipIdentity>,
     /// Selected clock identity.

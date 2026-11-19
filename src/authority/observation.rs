@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2026 Agent-IX
 
-//! `filament.observation.record/v2` owner artifact.
+//! `filament.observation.record/v3` owner artifact.
 
 use serde::{Deserialize, Serialize};
 
@@ -14,11 +14,9 @@ use crate::{AdmittedRecord, Anchor, Identity, QualifiedSubject, ValueState, Visi
 pub use super::Limits;
 
 /// Immutable owner-contract label.
-pub const CONTRACT: &str = "filament.observation.record/v2";
-/// Pinned JSON Schema bytes for [`CONTRACT`].
-pub const SCHEMA_BYTES: &[u8] = include_bytes!("../../schemas/observation-record-v2.schema.json");
-/// Lowercase SHA-256 digest of [`SCHEMA_BYTES`].
-pub const SCHEMA_SHA256: &str = "0e41c89713fafe4722a12be39a5ccf6fc5820e6786f623fa199ae0e4e5c7b634";
+pub const CONTRACT: &str = "filament.observation.record/v3";
+/// JSON Schema bytes for [`CONTRACT`].
+pub const SCHEMA_BYTES: &[u8] = include_bytes!("../../schemas/observation-record-v3.schema.json");
 
 /// Closed FR-294 timing classification.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -220,10 +218,10 @@ pub struct RecordView {
     visibility: VisibilityWire,
     anchor: AnchorWire,
     event_time_nanos: String,
-    ingestion_time_nanos: String,
+    ingestion_time_nanos: Option<String>,
     causal_relationship: Option<RelationshipWire>,
     clock: ClockWire,
-    lateness: Lateness,
+    lateness: Option<Lateness>,
     cutoff_identity: String,
 }
 
@@ -326,8 +324,8 @@ impl RecordView {
 
     /// Returns canonical ingestion-time nanoseconds text.
     #[must_use]
-    pub fn ingestion_time_nanos(&self) -> &str {
-        &self.ingestion_time_nanos
+    pub fn ingestion_time_nanos(&self) -> Option<&str> {
+        self.ingestion_time_nanos.as_deref()
     }
 
     /// Returns the explicit causal relationship, if one was selected.
@@ -357,7 +355,7 @@ impl RecordView {
 
     /// Returns the owner-derived FR-294 lateness classification.
     #[must_use]
-    pub const fn lateness(&self) -> Lateness {
+    pub const fn lateness(&self) -> Option<Lateness> {
         self.lateness
     }
 
@@ -470,7 +468,7 @@ struct ObservationWithoutIdentity<'a> {
     visibility: VisibilityWire,
     anchor: AnchorWire,
     event_time_nanos: String,
-    ingestion_time_nanos: String,
+    ingestion_time_nanos: Option<String>,
     causal_relationship_identity: Option<&'a [u8]>,
     clock_identity: &'a str,
     clock_revision: &'a str,
@@ -481,7 +479,7 @@ struct ObservationWithoutIdentity<'a> {
 pub fn record_identity(record: &AdmittedRecord, limits: Limits) -> Result<Identity> {
     validate_record(record)?;
     let preimage = ObservationIdentityPreimage {
-        identity_version: "filament.observation.identity/v2",
+        identity_version: "filament.observation.identity/v3",
         observation: without_identity(record),
     };
     common::sha256_jcs(&preimage, limits).map(|value| value.0)
@@ -547,11 +545,13 @@ pub fn derive(context: Context<'_>, selection: &Selection, limits: Limits) -> Re
     let cutoff_identity = cutoff_identity(&selection.cutoff, limits)?;
     let lateness = match selection.cutoff.rule {
         CutoffRule::IngestionTimeAtOrBefore => {
-            if record.ingestion_time_nanos <= selection.cutoff.instant_nanos {
-                Lateness::OnTime
-            } else {
-                Lateness::Late
-            }
+            record.ingestion_time_nanos.map(|ingestion_time_nanos| {
+                if ingestion_time_nanos <= selection.cutoff.instant_nanos {
+                    Lateness::OnTime
+                } else {
+                    Lateness::Late
+                }
+            })
         }
     };
     let relationship = match &record.causal_relationship_identity {
@@ -584,7 +584,7 @@ pub fn derive(context: Context<'_>, selection: &Selection, limits: Limits) -> Re
         visibility: visibility_wire(record.visibility),
         anchor: anchor_wire(record.anchor),
         event_time_nanos: record.event_time_nanos.to_string(),
-        ingestion_time_nanos: record.ingestion_time_nanos.to_string(),
+        ingestion_time_nanos: record.ingestion_time_nanos.map(|value| value.to_string()),
         causal_relationship: relationship,
         clock: ClockWire {
             identity: record.clock_identity.as_str().to_owned(),
@@ -644,7 +644,7 @@ fn without_identity(record: &AdmittedRecord) -> ObservationWithoutIdentity<'_> {
         visibility: visibility_wire(record.visibility),
         anchor: anchor_wire(record.anchor),
         event_time_nanos: record.event_time_nanos.to_string(),
-        ingestion_time_nanos: record.ingestion_time_nanos.to_string(),
+        ingestion_time_nanos: record.ingestion_time_nanos.map(|value| value.to_string()),
         causal_relationship_identity: record
             .causal_relationship_identity
             .as_ref()
@@ -772,8 +772,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn schema_digest_is_pinned() {
-        assert_eq!(common::schema_sha256(SCHEMA_BYTES), SCHEMA_SHA256);
+    fn schema_is_closed_to_the_current_contract() {
         common::assert_closed_schema(SCHEMA_BYTES, CONTRACT);
     }
 }

@@ -19,7 +19,7 @@
     "visibility": {"enum": ["internal", "external"]},
     "anchor": {"type": "object"},
     "event_time_nanos": {"type": "string", "pattern": "^(0|-?[1-9][0-9]*)$"},
-    "ingestion_time_nanos": {"type": "string", "pattern": "^(0|-?[1-9][0-9]*)$"},
+    "ingestion_time_nanos": {"oneOf": [{"type": "null"}, {"type": "string", "pattern": "^(0|-?[1-9][0-9]*)$"}]},
     "causal_relationship_identity": {"type": ["array", "null"], "items": {"type": "integer", "minimum": 0, "maximum": 255}},
     "clock_identity": {"type": "string", "minLength": 1},
     "clock_revision": {"type": "string", "minLength": 1},
