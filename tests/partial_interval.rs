@@ -530,6 +530,12 @@ fn tc007_partial_fact_retains_absent_ingestion_position_as_null() {
     let document = authority::partial::derive(context, &selection, Limits::owner_max())
         .expect("derive partial fact without ingestion position");
     let wire: serde_json::Value = serde_json::from_slice(document.bytes()).expect("canonical JSON");
+    let schema: serde_json::Value =
+        serde_json::from_slice(authority::partial::SCHEMA_BYTES).expect("partial schema JSON");
+    assert_eq!(
+        schema["properties"]["payload"]["properties"]["ingestion_position"]["oneOf"][0]["type"],
+        "null"
+    );
     assert_eq!(
         wire["payload"]["ingestion_position"],
         serde_json::Value::Null

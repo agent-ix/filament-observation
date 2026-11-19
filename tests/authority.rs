@@ -1952,6 +1952,10 @@ fn tc004_absent_ingestion_time_is_null_and_is_not_classified() {
         .expect("derive record with unknown ingestion instant");
     let wire: serde_json::Value =
         serde_json::from_slice(document.bytes()).expect("canonical observation JSON");
+    let schema: serde_json::Value =
+        serde_json::from_slice(authority::observation::SCHEMA_BYTES).expect("record schema JSON");
+    let validator = jsonschema::validator_for(&schema).expect("record schema compiles");
+    assert!(validator.is_valid(&wire));
     assert_eq!(
         wire["payload"]["ingestion_time_nanos"],
         serde_json::Value::Null
