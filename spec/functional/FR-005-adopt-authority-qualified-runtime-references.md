@@ -74,14 +74,25 @@ opaque runtime identities, or SHALL refuse the input with a typed cause.
 - A required relationship slot SHALL retain the selected producer authority,
   declaration identity, and ordered endpoint keys; it SHALL NOT contain or
   infer a runtime relationship identity.
+- The request MAY supply one completeness state for each selected relationship
+  declaration. A declaration with no supplied state is unlisted; `complete`
+  means its supplied relationship rows are exhaustive, and `incomplete` means
+  additional rows may exist. Each state SHALL be qualified by the exact
+  admitted Producer authority and declaration identity; duplicate or foreign
+  selections SHALL refuse.
 - Correlation outcomes SHALL be exactly `resolved`, `missing`, `conflicting`,
   and `ambiguous`. `missing` is incomplete; `conflicting` and `ambiguous` are
   refusals. An invalid producer, declaration, identity, or endpoint is an
   admission refusal before correlation and is not a fifth outcome.
-- Zero distinct matching values SHALL be `missing`; one SHALL be `resolved`;
-  more than one SHALL be `ambiguous`. Replayed copies of the same complete value
-  count once. A value under the required declaration and source with an
-  incompatible target SHALL be `conflicting`.
+- An unlisted or complete-empty extent with no matching value SHALL be
+  `missing`; an incomplete extent SHALL contribute
+  `IncompleteRelationshipExtent{required}` to the existing `Incomplete`
+  admission result, even with a matching value. This reason is not a fifth
+  correlation outcome. An incompatible target under the required declaration
+  and source SHALL be `conflicting` before extent completeness or match count
+  is considered. Otherwise, zero distinct matching values SHALL be `missing`,
+  one SHALL be `resolved`, and more than one SHALL be `ambiguous`. Replayed
+  copies of the same complete value count once.
 - The library SHALL NOT correlate from trace IDs, provider identities, foreign
   keys, display names, timestamps, record attributes, transport data, or
   ambient configuration.
@@ -116,6 +127,7 @@ remain at v1.
 | FR-005-AC-7 | Collection permutation produces one lexicographic key order without creating causal, delivery, retry or timestamp semantics. | Test (TC-005) |
 | FR-005-AC-8 | Exact and one-over relationship limits preserve the existing fail-closed resource behavior. | Test (TC-005) |
 | FR-005-AC-9 | The two qualified owner schemas publish as v2 while both v1 schema files remain byte-identical to the pre-#18 baseline. | Test (TC-005) |
+| FR-005-AC-10 | An incomplete declared relationship extent contributes `IncompleteRelationshipExtent{required}` to `Incomplete`, including with one matching relationship; a complete-empty extent remains `MissingRelationship`, duplicate and foreign extent selections refuse before an earlier incomplete admission result, and a known conflict takes precedence. The four correlation outcomes remain `resolved`, `missing`, `conflicting` and `ambiguous`. | Test (`filament-observation/tests/admission.rs::tc005_incomplete_relationship_extent_is_not_empty_or_complete`, `filament-observation/tests/admission.rs::tc005_relationship_extent_selections_are_unique`, `filament-observation/tests/admission.rs::tc005_relationship_extent_selection_refusal_precedes_incomplete_admission`, `filament-observation/tests/admission.rs::tc005_relationship_correlation_has_exact_outcomes`) |
 
 ## Dependencies
 

@@ -60,6 +60,7 @@ fn qualified() -> Box<QualifiedObservation> {
         },
         expected_subject: subject.clone(),
         relationships: vec![],
+        relationship_extents: vec![],
         required_relationships: vec![],
         scope: ScopeSelection {
             population_identity: id("unsealed-population"),

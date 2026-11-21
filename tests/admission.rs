@@ -10,7 +10,7 @@ use filament_observation::*;
 use ix_trace_rs::trace;
 use support::{
     order, producer, producer_with_bundle_identity, shipment, ORDER_PAYMENT_ATTEMPT, ORDER_REFUND,
-    ORDER_SHIPMENT, PAYMENT_ATTEMPT_KIND, REFUND_KIND,
+    ORDER_SHIPMENT, ORDER_SUCCESSOR, PAYMENT_ATTEMPT_KIND, REFUND_KIND,
 };
 
 fn id(value: &str) -> Identity {
@@ -56,6 +56,7 @@ fn request() -> AdmissionRequest {
         },
         expected_subject: order.clone(),
         relationships: vec![],
+        relationship_extents: vec![],
         required_relationships: vec![],
         scope: ScopeSelection {
             population_identity: id("unsealed-population"),
@@ -141,6 +142,16 @@ fn required(
     RequiredRelationship::new(&input.producer, ORDER_SHIPMENT, source, target).unwrap()
 }
 
+fn extent(request: &AdmissionRequest, state: RelationshipExtentState) -> RelationshipExtent {
+    RelationshipExtent::new(&request.producer, ORDER_SHIPMENT, state)
+        .expect("Producer declares the relationship extent")
+}
+
+fn add_extent(request: &mut AdmissionRequest, state: RelationshipExtentState) {
+    let selected_extent = extent(request, state);
+    request.relationship_extents.push(selected_extent);
+}
+
 #[trace("TC-001", "FR-001-AC-1", "FR-001-AC-7", "TC-005", "FR-005-AC-1")]
 #[test]
 fn tc001_valid_record_retains_all_selected_premises() {
@@ -205,9 +216,16 @@ fn tc001_missing_required_value_is_incomplete_not_false() {
     );
 }
 
-#[trace("TC-001", "FR-001-AC-4", "TC-005", "FR-005-AC-5", "FR-005-AC-6")]
+#[trace(
+    "TC-001",
+    "FR-001-AC-4",
+    "TC-005",
+    "FR-005-AC-5",
+    "FR-005-AC-6",
+    "FR-005-AC-10"
+)]
 #[test]
-fn tc005_relationship_correlation_has_four_exact_outcomes() {
+fn tc005_relationship_correlation_has_exact_outcomes() {
     let mut missing = request();
     let source = missing.expected_subject.clone();
     let target = shipment(&missing.producer, "shipment:S1");
@@ -227,12 +245,20 @@ fn tc005_relationship_correlation_has_four_exact_outcomes() {
     let required_slot = required(&conflicting, source.clone(), wanted);
     let relation = relationship(&conflicting, "relationship:O1-S2", source, other);
     conflicting.required_relationships.push(required_slot);
-    conflicting.relationships.push(relation);
+    let matching = relationship(
+        &conflicting,
+        "relationship:O1-S1",
+        conflicting.expected_subject.clone(),
+        shipment(&conflicting.producer, "shipment:S1"),
+    );
+    conflicting.relationships.extend([matching, relation]);
+    add_extent(&mut conflicting, RelationshipExtentState::Incomplete);
     assert!(matches!(
         admit(conflicting),
         AdmissionOutcome::Refused {
-            cause: RefusalCause::RelationshipConflict { .. }
-        }
+            cause: RefusalCause::RelationshipConflict { required }
+        } if required.declaration_identity() == ORDER_SHIPMENT
+            && required.target().identity().as_bytes() == b"shipment:S1"
     ));
 
     let mut ambiguous = request();
@@ -249,6 +275,7 @@ fn tc005_relationship_correlation_has_four_exact_outcomes() {
         );
         ambiguous.relationships.push(relation);
     }
+    add_extent(&mut ambiguous, RelationshipExtentState::Complete);
     assert!(matches!(
         admit(ambiguous),
         AdmissionOutcome::Refused {
@@ -263,9 +290,141 @@ fn tc005_relationship_correlation_has_four_exact_outcomes() {
     let relation = relationship(&replay, "relationship:one", source, target);
     replay.required_relationships.push(required_slot);
     replay.relationships.extend([relation.clone(), relation]);
+    add_extent(&mut replay, RelationshipExtentState::Complete);
     assert!(matches!(
         admit(replay),
+        AdmissionOutcome::Available { observation }
+            if observation.relationships().len() == 1
+    ));
+}
+
+#[trace("TC-005", "FR-005-AC-5", "FR-005-AC-6", "FR-005-AC-10")]
+#[test]
+fn tc005_incomplete_relationship_extent_is_not_empty_or_complete() {
+    let mut incomplete = request();
+    let source = incomplete.expected_subject.clone();
+    let target = shipment(&incomplete.producer, "shipment:S1");
+    let required_slot = required(&incomplete, source.clone(), target.clone());
+    let matching = relationship(&incomplete, "relationship:O1-S1", source, target);
+    incomplete.required_relationships.push(required_slot);
+    incomplete.relationships.push(matching);
+    add_extent(&mut incomplete, RelationshipExtentState::Incomplete);
+
+    assert!(matches!(
+        admit(incomplete),
+        AdmissionOutcome::Incomplete { reasons }
+            if matches!(
+                reasons.as_slice(),
+                [IncompleteReason::IncompleteRelationshipExtent { required }]
+                    if required.declaration_identity() == ORDER_SHIPMENT
+                        && required.target().identity().as_bytes() == b"shipment:S1"
+            )
+    ));
+
+    let mut empty = request();
+    let source = empty.expected_subject.clone();
+    let target = shipment(&empty.producer, "shipment:S1");
+    empty
+        .required_relationships
+        .push(required(&empty, source, target));
+    add_extent(&mut empty, RelationshipExtentState::Complete);
+    assert!(matches!(
+        admit(empty),
+        AdmissionOutcome::Incomplete { reasons }
+            if matches!(reasons.as_slice(), [IncompleteReason::MissingRelationship { .. }])
+    ));
+}
+
+#[trace("TC-005", "FR-005-AC-5", "FR-005-AC-6", "FR-005-AC-10")]
+#[test]
+fn tc005_relationship_extent_selections_are_unique() {
+    let mut orphaned = request();
+    let source = orphaned.expected_subject.clone();
+    let target = shipment(&orphaned.producer, "shipment:S1");
+    let candidate = relationship(&orphaned, "relationship:O1-S1", source, target);
+    orphaned.relationships.push(candidate);
+    assert!(matches!(
+        admit(orphaned),
         AdmissionOutcome::Available { observation } if observation.relationships().len() == 1
+    ));
+
+    let mut duplicated = request();
+    add_extent(&mut duplicated, RelationshipExtentState::Complete);
+    add_extent(&mut duplicated, RelationshipExtentState::Incomplete);
+    assert!(matches!(
+        admit(duplicated),
+        AdmissionOutcome::Refused {
+            cause: RefusalCause::InvalidSelection(SelectionField::RelationshipExtent)
+        }
+    ));
+}
+
+#[trace("TC-005", "FR-005-AC-10")]
+#[test]
+fn tc005_relationship_extent_selection_refusal_precedes_incomplete_admission() {
+    let mut foreign = request();
+    foreign.scope.closure_identity = None;
+    foreign.scope.closure_digest = None;
+    let other_producer = producer_with_bundle_identity("producer:other");
+    foreign.relationship_extents.push(
+        RelationshipExtent::new(
+            &other_producer,
+            ORDER_SHIPMENT,
+            RelationshipExtentState::Complete,
+        )
+        .expect("other Producer declares the relationship extent"),
+    );
+    assert!(matches!(
+        admit(foreign),
+        AdmissionOutcome::Refused {
+            cause: RefusalCause::InvalidReference(ReferenceRefusal::ForeignAuthority)
+        }
+    ));
+
+    let mut duplicated = request();
+    duplicated.scope.membership_complete = false;
+    add_extent(&mut duplicated, RelationshipExtentState::Complete);
+    add_extent(&mut duplicated, RelationshipExtentState::Incomplete);
+    assert!(matches!(
+        admit(duplicated),
+        AdmissionOutcome::Refused {
+            cause: RefusalCause::InvalidSelection(SelectionField::RelationshipExtent)
+        }
+    ));
+}
+
+#[trace("TC-005", "FR-005-AC-5", "FR-005-AC-6", "FR-005-AC-10")]
+#[test]
+fn tc005_missing_and_incomplete_extent_reasons_follow_slot_order() {
+    let mut input = request();
+    let shipment_source = input.expected_subject.clone();
+    let shipment_target = shipment(&input.producer, "shipment:S1");
+    let shipment_slot = required(&input, shipment_source, shipment_target);
+    let successor_source = input.expected_subject.clone();
+    let successor_target = order(&input.producer, "order:O2");
+    let successor_slot = RequiredRelationship::new(
+        &input.producer,
+        ORDER_SUCCESSOR,
+        successor_source,
+        successor_target,
+    )
+    .expect("Producer declares successor relationship");
+    input
+        .required_relationships
+        .extend([successor_slot, shipment_slot]);
+    add_extent(&mut input, RelationshipExtentState::Incomplete);
+
+    assert!(matches!(
+        admit(input),
+        AdmissionOutcome::Incomplete { reasons }
+            if matches!(
+                reasons.as_slice(),
+                [
+                    IncompleteReason::IncompleteRelationshipExtent { required: shipment },
+                    IncompleteReason::MissingRelationship { required: successor },
+                ] if shipment.declaration_identity() == ORDER_SHIPMENT
+                    && successor.declaration_identity() == ORDER_SUCCESSOR
+            )
     ));
 }
 
@@ -597,6 +756,7 @@ fn tc005_same_relationship_identity_cannot_rebind() {
     let first = relationship(&input, "relationship:fixed", source.clone(), s1);
     let rebound = relationship(&input, "relationship:fixed", source, s2);
     input.relationships.extend([first, rebound]);
+    add_extent(&mut input, RelationshipExtentState::Complete);
     assert!(matches!(
         admit(input),
         AdmissionOutcome::Refused {

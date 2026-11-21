@@ -422,6 +422,7 @@ pub fn admit_progress(
         binding,
         expected_subject,
         relationships,
+        relationship_extents: Vec::new(),
         required_relationships,
         scope,
         records,

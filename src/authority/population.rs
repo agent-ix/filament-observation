@@ -550,6 +550,7 @@ fn request_view(qualified: &QualifiedObservation) -> AdmissionRequest {
         binding: qualified.binding().clone(),
         expected_subject: qualified.expected_subject().clone(),
         relationships: qualified.relationships().to_vec(),
+        relationship_extents: Vec::new(),
         required_relationships: qualified.required_relationships().to_vec(),
         scope: qualified.scope().clone(),
         records: qualified.records().to_vec(),

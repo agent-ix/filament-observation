@@ -34,8 +34,10 @@ apart. Relationships must be supplied explicitly; a timestamp does not imply one
 ## Usage
 
 `admit` takes one `AdmissionRequest` (the package, producer bundle, binding,
-expected subject, relationships, scope, records and resource limits) and returns
-an `AdmissionOutcome`. These two tests from
+expected subject, relationship candidates and any listed extent-completeness
+states, scope, records and resource limits) and returns an `AdmissionOutcome`.
+An omitted extent is unlisted; an explicitly incomplete extent remains
+incomplete even when it contains a matching candidate. These tests from
 [`tests/admission.rs`](tests/admission.rs) show the first two outcomes; the
 `request()` helper in that file builds a complete, valid request.
 
@@ -61,7 +63,7 @@ Each outcome is one of three variants.
 | Outcome | Meaning |
 | --- | --- |
 | `Available` | Every required premise was admitted. The `QualifiedObservation` keeps the package, producer, binding, subject, relationships, scope, records and limits exactly as selected. |
-| `Incomplete` | A required premise is absent: `MissingValuation`, `MissingMembership`, `MissingRelationship` or `MissingClosure`. |
+| `Incomplete` | A required premise is absent or its supplied extent is incomplete: `MissingValuation`, `MissingMembership`, `MissingRelationship`, `IncompleteRelationshipExtent` or `MissingClosure`. |
 | `Refused` | A selection is invalid or does not match. `RefusalCause` says which: a binding, subject or clock mismatch, an invalid window, an exceeded limit, a duplicate record or member, an ambiguous or conflicting relationship, or an identity that differs from the one derived by the owner contract. |
 
 ## Owner contracts

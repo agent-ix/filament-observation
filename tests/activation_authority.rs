@@ -124,6 +124,7 @@ fn qualified_with_value_trigger_and_time(
         },
         expected_subject: subject.clone(),
         relationships: vec![],
+        relationship_extents: vec![],
         required_relationships: vec![],
         scope: ScopeSelection {
             population_identity: id("unsealed-population"),

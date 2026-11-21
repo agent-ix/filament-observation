@@ -17,8 +17,9 @@ use filament_observation::authority::{
 use filament_observation::{
     admit, AdmissionOutcome, AdmissionRequest, AdmittedRecord, Anchor, ClockRange, Digest,
     Identity, Member, ObservationBinding, PackageSelection, QualifiedObservation, QualifiedSubject,
-    Relationship, RelationshipIdentity, ResourceLimits, ScopeKind, ScopeSelection, ValueState,
-    Visibility, NATIVE_LINKED_PACKAGE_FORMAT, PRODUCER_INTERFACE_VERSION,
+    Relationship, RelationshipExtent, RelationshipExtentState, RelationshipIdentity,
+    ResourceLimits, ScopeKind, ScopeSelection, ValueState, Visibility,
+    NATIVE_LINKED_PACKAGE_FORMAT, PRODUCER_INTERFACE_VERSION,
 };
 use ix_trace_rs::trace;
 use proptest::prelude::*;
@@ -47,6 +48,7 @@ fn qualified_without_ingestion_time() -> Box<QualifiedObservation> {
         binding: admitted.binding().clone(),
         expected_subject: admitted.expected_subject().clone(),
         relationships: admitted.relationships().to_vec(),
+        relationship_extents: vec![],
         required_relationships: admitted.required_relationships().to_vec(),
         scope: admitted.scope().clone(),
         records: admitted.records().to_vec(),
@@ -74,6 +76,7 @@ fn qualified_with_two_records() -> Box<QualifiedObservation> {
         binding: admitted.binding().clone(),
         expected_subject: admitted.expected_subject().clone(),
         relationships: admitted.relationships().to_vec(),
+        relationship_extents: vec![],
         required_relationships: admitted.required_relationships().to_vec(),
         scope: admitted.scope().clone(),
         records: admitted.records().to_vec(),
@@ -115,6 +118,7 @@ fn qualified_with_three_records() -> Box<QualifiedObservation> {
         binding: admitted.binding().clone(),
         expected_subject: admitted.expected_subject().clone(),
         relationships: admitted.relationships().to_vec(),
+        relationship_extents: vec![],
         required_relationships: admitted.required_relationships().to_vec(),
         scope: admitted.scope().clone(),
         records: admitted.records().to_vec(),
@@ -210,6 +214,12 @@ fn qualified_with_window_closure_and_member(
         },
         expected_subject: subject.clone(),
         relationships: vec![relationship],
+        relationship_extents: vec![RelationshipExtent::new(
+            &producer,
+            ORDER_SHIPMENT,
+            RelationshipExtentState::Complete,
+        )
+        .unwrap()],
         required_relationships: vec![],
         scope: ScopeSelection {
             population_identity: id("unsealed-population"),
@@ -3807,6 +3817,14 @@ fn query_request_in_scope(
             clock_uncertainty_nanos: 0,
         });
     }
+    let relationship_extents = if relationships.is_empty() {
+        vec![]
+    } else {
+        vec![
+            RelationshipExtent::new(&producer, ORDER_SHIPMENT, RelationshipExtentState::Complete)
+                .expect("query producer declares relationship extent"),
+        ]
+    };
     let mut request = AdmissionRequest {
         package: PackageSelection {
             format: NATIVE_LINKED_PACKAGE_FORMAT.to_owned(),
@@ -3828,6 +3846,7 @@ fn query_request_in_scope(
         },
         expected_subject: root,
         relationships,
+        relationship_extents,
         required_relationships: vec![],
         scope: ScopeSelection {
             population_identity: id("unsealed-query-population"),

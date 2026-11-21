@@ -761,6 +761,7 @@ fn watermark_documents_are_authenticated_against_the_qualified_history() {
         binding: qualified.binding().clone(),
         expected_subject: qualified.expected_subject().clone(),
         relationships: qualified.relationships().to_vec(),
+        relationship_extents: Vec::new(),
         required_relationships: qualified.required_relationships().to_vec(),
         scope: qualified.scope().clone(),
         records: Vec::new(),
