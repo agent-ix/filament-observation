@@ -216,7 +216,14 @@ fn tc001_missing_required_value_is_incomplete_not_false() {
     );
 }
 
-#[trace("TC-001", "FR-001-AC-4", "TC-005", "FR-005-AC-5", "FR-005-AC-6")]
+#[trace(
+    "TC-001",
+    "FR-001-AC-4",
+    "TC-005",
+    "FR-005-AC-5",
+    "FR-005-AC-6",
+    "FR-005-AC-10"
+)]
 #[test]
 fn tc005_relationship_correlation_has_exact_outcomes() {
     let mut missing = request();
@@ -291,7 +298,7 @@ fn tc005_relationship_correlation_has_exact_outcomes() {
     ));
 }
 
-#[trace("TC-005", "FR-005-AC-5", "FR-005-AC-6")]
+#[trace("TC-005", "FR-005-AC-5", "FR-005-AC-6", "FR-005-AC-10")]
 #[test]
 fn tc005_incomplete_relationship_extent_is_not_empty_or_complete() {
     let mut incomplete = request();
@@ -328,7 +335,7 @@ fn tc005_incomplete_relationship_extent_is_not_empty_or_complete() {
     ));
 }
 
-#[trace("TC-005", "FR-005-AC-5", "FR-005-AC-6")]
+#[trace("TC-005", "FR-005-AC-5", "FR-005-AC-6", "FR-005-AC-10")]
 #[test]
 fn tc005_relationship_extent_selections_are_unique() {
     let mut orphaned = request();
@@ -352,7 +359,41 @@ fn tc005_relationship_extent_selections_are_unique() {
     ));
 }
 
-#[trace("TC-005", "FR-005-AC-5", "FR-005-AC-6")]
+#[trace("TC-005", "FR-005-AC-10")]
+#[test]
+fn tc005_relationship_extent_selection_refusal_precedes_incomplete_admission() {
+    let mut foreign = request();
+    foreign.scope.closure_identity = None;
+    foreign.scope.closure_digest = None;
+    let other_producer = producer_with_bundle_identity("producer:other");
+    foreign.relationship_extents.push(
+        RelationshipExtent::new(
+            &other_producer,
+            ORDER_SHIPMENT,
+            RelationshipExtentState::Complete,
+        )
+        .expect("other Producer declares the relationship extent"),
+    );
+    assert!(matches!(
+        admit(foreign),
+        AdmissionOutcome::Refused {
+            cause: RefusalCause::InvalidReference(ReferenceRefusal::ForeignAuthority)
+        }
+    ));
+
+    let mut duplicated = request();
+    duplicated.scope.membership_complete = false;
+    add_extent(&mut duplicated, RelationshipExtentState::Complete);
+    add_extent(&mut duplicated, RelationshipExtentState::Incomplete);
+    assert!(matches!(
+        admit(duplicated),
+        AdmissionOutcome::Refused {
+            cause: RefusalCause::InvalidSelection(SelectionField::RelationshipExtent)
+        }
+    ));
+}
+
+#[trace("TC-005", "FR-005-AC-5", "FR-005-AC-6", "FR-005-AC-10")]
 #[test]
 fn tc005_missing_and_incomplete_extent_reasons_follow_slot_order() {
     let mut input = request();

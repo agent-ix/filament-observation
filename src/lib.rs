@@ -630,6 +630,9 @@ pub fn admit(mut request: AdmissionRequest) -> AdmissionOutcome {
     if !valid_range(request.scope.range) {
         return refused(RefusalCause::InvalidWindow);
     }
+    if let Some(cause) = invalid_relationship_extent_selection(&request) {
+        return refused(cause);
+    }
     if request.scope.closure_identity.is_none() != request.scope.closure_digest.is_none() {
         return refused(RefusalCause::InvalidSelection(SelectionField::Closure));
     }
@@ -923,26 +926,12 @@ fn invalid_relationship_selection(request: &AdmissionRequest) -> Option<RefusalC
             .iter()
             .any(|relationship| !relationship.belongs_to(&request.producer))
         || request
-            .relationship_extents
-            .iter()
-            .any(|extent| !extent.belongs_to(&request.producer))
-        || request
             .required_relationships
             .iter()
             .any(|relationship| !relationship.belongs_to(&request.producer))
     {
         return Some(RefusalCause::InvalidReference(
             ReferenceRefusal::ForeignAuthority,
-        ));
-    }
-    let mut extent_declarations = BTreeSet::new();
-    if request
-        .relationship_extents
-        .iter()
-        .any(|extent| !extent_declarations.insert(extent.declaration_identity()))
-    {
-        return Some(RefusalCause::InvalidSelection(
-            SelectionField::RelationshipExtent,
         ));
     }
     let mut identities = BTreeMap::new();
@@ -955,6 +944,29 @@ fn invalid_relationship_selection(request: &AdmissionRequest) -> Option<RefusalC
                 });
             }
         }
+    }
+    None
+}
+
+fn invalid_relationship_extent_selection(request: &AdmissionRequest) -> Option<RefusalCause> {
+    if request
+        .relationship_extents
+        .iter()
+        .any(|extent| !extent.belongs_to(&request.producer))
+    {
+        return Some(RefusalCause::InvalidReference(
+            ReferenceRefusal::ForeignAuthority,
+        ));
+    }
+    let mut declarations = BTreeSet::new();
+    if request
+        .relationship_extents
+        .iter()
+        .any(|extent| !declarations.insert(extent.declaration_identity()))
+    {
+        return Some(RefusalCause::InvalidSelection(
+            SelectionField::RelationshipExtent,
+        ));
     }
     None
 }
