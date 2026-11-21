@@ -25,7 +25,8 @@ pub use producer::{
 };
 pub use runtime_reference::{
     EndpointSide, QualifiedSubject, ReferenceComponent, ReferenceRefusal, Relationship,
-    RelationshipIdentity, RequiredRelationship, SubjectIdentity, SubjectKind,
+    RelationshipExtent, RelationshipExtentState, RelationshipIdentity, RequiredRelationship,
+    SubjectIdentity, SubjectKind,
 };
 
 /// Required linked-package descriptor format.
@@ -306,6 +307,9 @@ pub struct AdmissionRequest {
     pub expected_subject: QualifiedSubject,
     /// Complete supplied relationship graph.
     pub relationships: Vec<Relationship>,
+    /// Explicit completeness states for listed relationship declarations.
+    /// An absent declaration is unlisted.
+    pub relationship_extents: Vec<RelationshipExtent>,
     /// Relationship premises required by the binding.
     pub required_relationships: Vec<RequiredRelationship>,
     /// Complete finite scope selection.
@@ -316,7 +320,7 @@ pub struct AdmissionRequest {
     pub limits: ResourceLimits,
 }
 
-/// A fully qualified observation set with every caller-selected premise retained.
+/// A fully qualified admitted observation set retained for downstream consumers.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct QualifiedObservation {
     package: PackageSelection,
@@ -398,6 +402,11 @@ pub enum IncompleteReason {
     MissingMembership,
     /// A required directed relationship is absent.
     MissingRelationship {
+        /// Complete exact required relationship slot.
+        required: Box<RequiredRelationship>,
+    },
+    /// A required relationship extent was explicitly supplied as incomplete.
+    IncompleteRelationshipExtent {
         /// Complete exact required relationship slot.
         required: Box<RequiredRelationship>,
     },
@@ -506,6 +515,8 @@ pub enum SelectionField {
     RecordIdentity,
     /// Member or member-record identity.
     MemberIdentity,
+    /// Relationship extent selection or membership.
+    RelationshipExtent,
 }
 
 /// Binding component whose exact selection did not match a record.
@@ -639,6 +650,7 @@ pub fn admit(mut request: AdmissionRequest) -> AdmissionOutcome {
     }
     request.relationships.sort();
     request.relationships.dedup();
+    request.relationship_extents.sort();
     request.required_relationships.sort();
     request.required_relationships.dedup();
     for record in &request.records {
@@ -749,26 +761,36 @@ pub fn admit(mut request: AdmissionRequest) -> AdmissionOutcome {
     }
 
     for wanted in &request.required_relationships {
-        let matching: BTreeSet<_> = request
+        if request
+            .relationships
+            .iter()
+            .any(|actual| wanted.conflicts_with(actual))
+        {
+            return refused(RefusalCause::RelationshipConflict {
+                required: Box::new(wanted.clone()),
+            });
+        }
+
+        if request.relationship_extents.iter().any(|extent| {
+            extent.applies_to(wanted) && extent.state() == RelationshipExtentState::Incomplete
+        }) {
+            incomplete_reasons.push(IncompleteReason::IncompleteRelationshipExtent {
+                required: Box::new(wanted.clone()),
+            });
+            continue;
+        }
+
+        let matching_count = request
             .relationships
             .iter()
             .filter(|actual| wanted.matches(actual))
-            .collect();
-        if matching.len() > 1 {
+            .count();
+        if matching_count > 1 {
             return refused(RefusalCause::AmbiguousRelationship {
                 required: Box::new(wanted.clone()),
             });
         }
-        if matching.is_empty() {
-            if request
-                .relationships
-                .iter()
-                .any(|actual| wanted.conflicts_with(actual))
-            {
-                return refused(RefusalCause::RelationshipConflict {
-                    required: Box::new(wanted.clone()),
-                });
-            }
+        if matching_count == 0 {
             incomplete_reasons.push(IncompleteReason::MissingRelationship {
                 required: Box::new(wanted.clone()),
             });
@@ -901,12 +923,26 @@ fn invalid_relationship_selection(request: &AdmissionRequest) -> Option<RefusalC
             .iter()
             .any(|relationship| !relationship.belongs_to(&request.producer))
         || request
+            .relationship_extents
+            .iter()
+            .any(|extent| !extent.belongs_to(&request.producer))
+        || request
             .required_relationships
             .iter()
             .any(|relationship| !relationship.belongs_to(&request.producer))
     {
         return Some(RefusalCause::InvalidReference(
             ReferenceRefusal::ForeignAuthority,
+        ));
+    }
+    let mut extent_declarations = BTreeSet::new();
+    if request
+        .relationship_extents
+        .iter()
+        .any(|extent| !extent_declarations.insert(extent.declaration_identity()))
+    {
+        return Some(RefusalCause::InvalidSelection(
+            SelectionField::RelationshipExtent,
         ));
     }
     let mut identities = BTreeMap::new();

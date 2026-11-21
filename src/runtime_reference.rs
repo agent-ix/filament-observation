@@ -32,6 +32,15 @@ pub enum EndpointSide {
     Target,
 }
 
+/// Whether a supplied relationship extent is known complete.
+#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub enum RelationshipExtentState {
+    /// The selected Producer declaration has a complete extent.
+    Complete,
+    /// The selected Producer declaration has an explicitly incomplete extent.
+    Incomplete,
+}
+
 /// Typed refusal returned before an invalid runtime reference can exist.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ReferenceRefusal {
@@ -250,6 +259,59 @@ impl Relationship {
             && self.interface_version == producer.interface_version()
             && self.source.belongs_to(producer)
             && self.target.belongs_to(producer)
+    }
+}
+
+/// Completeness state for one selected Producer relationship declaration.
+///
+/// An absent `RelationshipExtent` means the declaration is unlisted. Instances
+/// remain in [`Relationship`] values; this selection carries only the
+/// completeness of the declaration's extent.
+#[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
+pub struct RelationshipExtent {
+    declaration_identity: String,
+    authority: AdmittedBundleKey,
+    interface_version: String,
+    state: RelationshipExtentState,
+}
+
+impl RelationshipExtent {
+    /// Selects one declared relationship extent and its completeness state.
+    pub fn new(
+        producer: &AdmittedStaticBundle,
+        declaration_identity: impl Into<String>,
+        state: RelationshipExtentState,
+    ) -> Result<Self, ReferenceRefusal> {
+        let declaration_identity = declaration_identity.into();
+        resolve_declaration(producer, &declaration_identity)?;
+        Ok(Self {
+            declaration_identity,
+            authority: producer.key().clone(),
+            interface_version: producer.interface_version().to_owned(),
+            state,
+        })
+    }
+
+    /// Returns the selected Producer relationship declaration identity.
+    #[must_use]
+    pub fn declaration_identity(&self) -> &str {
+        &self.declaration_identity
+    }
+
+    /// Returns the selected extent completeness state.
+    #[must_use]
+    pub const fn state(&self) -> RelationshipExtentState {
+        self.state
+    }
+
+    pub(crate) fn belongs_to(&self, producer: &AdmittedStaticBundle) -> bool {
+        self.authority == *producer.key() && self.interface_version == producer.interface_version()
+    }
+
+    pub(crate) fn applies_to(&self, required: &RequiredRelationship) -> bool {
+        self.declaration_identity == required.declaration_identity
+            && self.authority == required.authority
+            && self.interface_version == required.interface_version
     }
 }
 
