@@ -5934,6 +5934,111 @@ fn completeness_revision_refuses_omitted_members_not_held_by_prior() {
     ));
 }
 
+#[trace("TC-015", "FR-013-AC-8")]
+#[test]
+fn completeness_revision_carries_a_member_outside_the_population_and_accepts_it_again() {
+    use authority::completeness::{
+        derive, read, read_revised, revise, Fact, FactOrigin, FactStatus, RevisionCause, Selection,
+    };
+    let owner = owner();
+    let limits = Limits::owner_max();
+    let early = TemporalBoundary::TimestampedEvent {
+        lower_nanos: 0,
+        upper_inclusive_nanos: 5,
+        carrier_end_exclusive_nanos: 6,
+        watermark_nanos: 6,
+    };
+
+    // Revision 1: member:O1 held through 5.
+    let first = qualified();
+    let first_subject = subject(&first);
+    let first_context = Context::new(History::batch(&first), &owner, &first_subject, 1, None);
+    let o1_record = first.records()[0].identity.clone();
+    let first_selection = Selection::new(
+        id("boundary:O1"),
+        early,
+        vec![Fact::new(
+            id("member:O1"),
+            Some(o1_record.clone()),
+            FactStatus::Available,
+        )],
+    );
+    let first_document =
+        derive(first_context, &first_selection, limits).expect("derive revision 1");
+    let first_view = read(
+        first_document.bytes(),
+        first_context,
+        &first_selection,
+        limits,
+    )
+    .expect("read revision 1");
+
+    // Revision 2: the population lacks member:O1; member:O2 lies after 5.
+    let second = qualified_with_member("member:O2");
+    let second_subject = subject(&second);
+    let second_context = Context::new(
+        History::batch(&second),
+        &owner,
+        &second_subject,
+        2,
+        Some(&first_document),
+    );
+    let second_selection = Selection::new(
+        id("boundary:O1"),
+        boundary(OpenClosed::Closed),
+        vec![Fact::new(
+            id("member:O2"),
+            Some(second.records()[0].identity.clone()),
+            FactStatus::Available,
+        )],
+    );
+    let second_document = revise(&first_view, second_context, &second_selection, limits)
+        .expect("a member outside the population is carried");
+    let second_view = read_revised(
+        second_document.bytes(),
+        &first_view,
+        second_context,
+        &second_selection,
+        limits,
+    )
+    .expect("read_revised admits the revision");
+    let carried = second_view
+        .payload()
+        .facts()
+        .find(|fact| fact.member_identity == "member:O1")
+        .expect("member:O1 is carried");
+    assert_eq!(carried.origin, FactOrigin::Carried);
+    assert_eq!(carried.status, FactStatus::Available);
+    assert_eq!(carried.observation_identity, Some(o1_record.as_str()));
+
+    // Revision 3: member:O1 is in the population again and listed inside the
+    // boundary; the retained revision holds it, so it is not uncovered.
+    let third = qualified();
+    let third_subject = subject(&third);
+    let third_context = Context::new(
+        History::batch(&third),
+        &owner,
+        &third_subject,
+        3,
+        Some(&second_document),
+    );
+    let third_selection = completeness_selection(&third.records()[0]);
+    let third_document = revise(&second_view, third_context, &third_selection, limits)
+        .map_err(|error| match error.cause() {
+            RevisionCause::Contradiction(found) => format!("{found:?}"),
+            RevisionCause::Authority(found) => format!("{found:?}"),
+        })
+        .expect("listing the member again inside the boundary is accepted");
+    read_revised(
+        third_document.bytes(),
+        &second_view,
+        third_context,
+        &third_selection,
+        limits,
+    )
+    .expect("read_revised admits revision 3");
+}
+
 #[trace("TC-016", "FR-014-AC-9")]
 #[test]
 fn progress_admission_authenticates_runtime_event_and_watermark_lines() {
