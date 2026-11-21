@@ -630,6 +630,26 @@ fn tc005_presentation_is_not_a_key_member_and_sorting_is_noncausal() {
     assert_eq!(distinct.len(), 12);
 }
 
+#[trace("TC-005", "FR-005-AC-3")]
+#[test]
+fn tc005_wire_authority_is_preserved_until_admission() {
+    let mut input = request();
+    let foreign = producer_with_bundle_identity("ix://agent-ix/commerce/bundle/foreign");
+    let expected = input.expected_subject.clone();
+    input.expected_subject = QualifiedSubject::from_authority(
+        foreign.key().clone(),
+        expected.kind().clone(),
+        expected.identity().clone(),
+    );
+
+    assert_eq!(
+        admit(input),
+        AdmissionOutcome::Refused {
+            cause: RefusalCause::InvalidReference(ReferenceRefusal::ForeignAuthority)
+        }
+    );
+}
+
 #[trace("TC-005", "FR-005-AC-4")]
 #[test]
 fn tc005_relationship_construction_refuses_unknown_reversed_and_foreign_inputs() {
