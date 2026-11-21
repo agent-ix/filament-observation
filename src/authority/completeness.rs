@@ -609,7 +609,7 @@ pub fn revise(
         prior_state,
         &[],
     )
-    .map_err(|found| revision_failure(found, prior_boundary, selection.boundary, &[], prior))?;
+    .map_err(|found| revision_failure(found, prior_boundary, selection.boundary, &[]))?;
     let qualified = context.history().qualified();
     let required_members = &qualified.scope().required_member_identities;
     let mut previous_index = None;
@@ -689,7 +689,7 @@ pub fn revise(
         selection_state(&selection.facts),
         &[],
     )
-    .map_err(|found| revision_failure(found, prior_boundary, selection.boundary, &[], prior))?;
+    .map_err(|found| revision_failure(found, prior_boundary, selection.boundary, &[]))?;
     // FR-013 check 3a (population) stays here: it reads the successor's
     // required population, which `check_revision` does not see.
     if let Some(member_identity) = missing_unheld.into_iter().next() {
@@ -698,8 +698,8 @@ pub fn revise(
             prior: prior_boundary,
         }));
     }
-    let mut listed_facts: Vec<&Fact> = Vec::new();
-    let mut listed: Vec<ListedFact<'_, str>> = Vec::new();
+    let mut listed_facts: Vec<&Fact> = Vec::with_capacity(selection.facts.len());
+    let mut listed: Vec<ListedFact<'_, str>> = Vec::with_capacity(selection.facts.len());
     let mut pending: Option<RevisionError> = None;
     for fact in &selection.facts {
         let Some(observation_identity) = &fact.observation_identity else {
@@ -754,28 +754,18 @@ pub fn revise(
         // An authority error on a later fact is reached only after every
         // earlier fact passed the uncovered-member check; check 4 follows it.
         return Err(match outcome {
-            Err(found @ ListedContradiction::UncoveredMember { .. }) => revision_failure(
-                found,
-                prior_boundary,
-                selection.boundary,
-                &listed_facts,
-                prior,
-            ),
+            Err(found @ ListedContradiction::UncoveredMember { .. }) => {
+                revision_failure(found, prior_boundary, selection.boundary, &listed_facts)
+            }
             _ => error,
         });
     }
     outcome.map_err(|found| {
-        revision_failure(
-            found,
-            prior_boundary,
-            selection.boundary,
-            &listed_facts,
-            prior,
-        )
+        revision_failure(found, prior_boundary, selection.boundary, &listed_facts)
     })?;
     let mut revised_payload = selected_view.payload().clone();
     revised_payload.basis = Basis::Revised;
-    revised_payload.facts = merge_facts(&prior.payload().facts, &selection.facts);
+    revised_payload.facts = merge_facts(&prior.payload().facts, &selection.facts, required_members);
     revised_payload.state = aggregate_state(&revised_payload.facts);
     let usage = completeness_usage(&revised_payload);
     let revision_context = context.allow_predecessor_subject_change();
@@ -817,7 +807,7 @@ impl RetainedHolding for View {
 }
 
 /// One member a successor lists, with where its record is placed.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct ListedFact<'a, K: ?Sized> {
     /// The member key.
     pub key: &'a K,
@@ -830,7 +820,7 @@ pub struct ListedFact<'a, K: ?Sized> {
 }
 
 /// One FR-013 contradiction found by [`check_revision`].
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ListedContradiction {
     /// The successor's upper bound is below the prior's.
     BoundaryRegressed {
@@ -841,8 +831,8 @@ pub enum ListedContradiction {
     },
     /// A complete prior became incomplete.
     CompleteRegressed {
-        /// The retained upper bound; `i128::MIN` when the prior states none.
-        prior_upper: i128,
+        /// The retained upper bound, when the prior states one.
+        prior_upper: Option<i128>,
     },
     /// The listed member at this index is placed at or before the prior's
     /// bound and the prior does not hold it.
@@ -855,6 +845,8 @@ pub enum ListedContradiction {
     MemberObservationChanged {
         /// Index into the listed facts.
         listed: usize,
+        /// The held observation identity the listed one differs from.
+        prior_observation: Option<String>,
     },
 }
 
@@ -881,9 +873,7 @@ pub fn check_revision<H: RetainedHolding>(
         }
     }
     if prior_state == State::Complete && successor_state == State::Incomplete {
-        return Err(ListedContradiction::CompleteRegressed {
-            prior_upper: prior_upper.unwrap_or(i128::MIN),
-        });
+        return Err(ListedContradiction::CompleteRegressed { prior_upper });
     }
     let counts = |fact: &ListedFact<'_, H::Key>| {
         matches!(
@@ -907,7 +897,10 @@ pub fn check_revision<H: RetainedHolding>(
             if held.status == FactStatus::Available
                 && held.observation_identity != fact.observation_identity
             {
-                return Err(ListedContradiction::MemberObservationChanged { listed: index });
+                return Err(ListedContradiction::MemberObservationChanged {
+                    listed: index,
+                    prior_observation: held.observation_identity.map(str::to_owned),
+                });
             }
         }
     }
@@ -919,9 +912,18 @@ fn revision_failure(
     prior_boundary: TemporalBoundary,
     successor_boundary: TemporalBoundary,
     listed: &[&Fact],
-    prior: &View,
 ) -> RevisionError {
-    revision_contradiction(match found {
+    let inconsistent = || {
+        revision_authority(
+            RevisionStage::Revision,
+            Error::new(
+                ErrorCode::ExpectedMismatch,
+                "revision check named a listed fact or observation that does not exist",
+                Usage::default(),
+            ),
+        )
+    };
+    let contradiction = match found {
         ListedContradiction::BoundaryRegressed { .. } => Contradiction::BoundaryRegressed {
             prior: prior_boundary,
             successor: successor_boundary,
@@ -929,28 +931,36 @@ fn revision_failure(
         ListedContradiction::CompleteRegressed { .. } => Contradiction::CompleteRegressed {
             prior: prior_boundary,
         },
-        ListedContradiction::UncoveredMember { listed: index } => Contradiction::UncoveredMember {
-            member_identity: listed[index].member_identity.clone(),
-            prior: prior_boundary,
-        },
-        ListedContradiction::MemberObservationChanged { listed: index } => {
-            let fact = listed[index];
-            let prior_observation = prior
-                .held(fact.member_identity.as_str())
-                .and_then(|held| held.observation_identity)
-                .unwrap_or_default();
+        ListedContradiction::UncoveredMember { listed: index } => {
+            let Some(fact) = listed.get(index) else {
+                return inconsistent();
+            };
+            Contradiction::UncoveredMember {
+                member_identity: fact.member_identity.clone(),
+                prior: prior_boundary,
+            }
+        }
+        ListedContradiction::MemberObservationChanged {
+            listed: index,
+            prior_observation,
+        } => {
+            let Some(fact) = listed.get(index) else {
+                return inconsistent();
+            };
+            let (Some(prior_observation), Some(successor_observation)) =
+                (prior_observation, fact.observation_identity.clone())
+            else {
+                return inconsistent();
+            };
             Contradiction::MemberObservationChanged {
                 member_identity: fact.member_identity.clone(),
                 prior_observation: Identity::new(prior_observation),
-                successor_observation: fact
-                    .observation_identity
-                    .clone()
-                    .unwrap_or_else(|| Identity::new("")),
+                successor_observation,
             }
         }
-    })
+    };
+    revision_contradiction(contradiction)
 }
-
 /// Recomputes and strict-reads a revised completeness document.
 pub fn read_revised(
     bytes: &[u8],
@@ -981,16 +991,19 @@ fn selection_state(facts: &[Fact]) -> State {
     }
 }
 
-fn merge_facts(prior: &[FactWire], selected: &[Fact]) -> Vec<FactWire> {
-    let mut merged = selected
-        .iter()
-        .map(|selected_fact| {
-            let prior_fact = prior.iter().find(|prior_fact| {
-                prior_fact.member_identity == selected_fact.member_identity.as_str()
-            });
-            let Some(prior_fact) = prior_fact else {
-                return FactWire {
-                    member_identity: selected_fact.member_identity.as_str().to_owned(),
+/// Builds the revised population: one fact per member of `population`, in its
+/// order (the merged selected fact, or the prior's carried), then each prior
+/// fact for a member outside `population`, in the prior's order, carried.
+fn merge_facts(prior: &[FactWire], selected: &[Fact], population: &[Identity]) -> Vec<FactWire> {
+    let prior_of = |member: &str| prior.iter().find(|fact| fact.member_identity == member);
+    let mut merged = Vec::with_capacity(prior.len().max(population.len()));
+    for member in population {
+        let selected_fact = selected.iter().find(|fact| fact.member_identity == *member);
+        let prior_fact = prior_of(member.as_str());
+        let wire = match (selected_fact, prior_fact) {
+            (Some(selected_fact), prior_fact) => {
+                let selected_wire = FactWire {
+                    member_identity: member.as_str().to_owned(),
                     observation_identity: selected_fact
                         .observation_identity
                         .as_ref()
@@ -998,38 +1011,38 @@ fn merge_facts(prior: &[FactWire], selected: &[Fact]) -> Vec<FactWire> {
                     status: selected_fact.status,
                     origin: FactOrigin::Selected,
                 };
-            };
-            let (status, observation_identity) =
-                if fact_rank(prior_fact.status) > fact_rank(selected_fact.status) {
-                    (prior_fact.status, prior_fact.observation_identity.clone())
-                } else {
-                    (
-                        selected_fact.status,
-                        selected_fact
-                            .observation_identity
-                            .as_ref()
-                            .map(|identity| identity.as_str().to_owned()),
-                    )
-                };
-            FactWire {
-                member_identity: selected_fact.member_identity.as_str().to_owned(),
-                observation_identity,
-                status,
-                origin: FactOrigin::Selected,
+                match prior_fact {
+                    Some(prior_fact)
+                        if fact_rank(prior_fact.status) > fact_rank(selected_fact.status) =>
+                    {
+                        FactWire {
+                            status: prior_fact.status,
+                            observation_identity: prior_fact.observation_identity.clone(),
+                            ..selected_wire
+                        }
+                    }
+                    _ => selected_wire,
+                }
             }
-        })
-        .collect::<Vec<_>>();
+            (None, Some(prior_fact)) => FactWire {
+                origin: FactOrigin::Carried,
+                ..prior_fact.clone()
+            },
+            (None, None) => continue,
+        };
+        merged.push(wire);
+    }
     merged.extend(
         prior
             .iter()
-            .filter(|prior_fact| {
-                !selected
+            .filter(|fact| {
+                !population
                     .iter()
-                    .any(|fact| fact.member_identity.as_str() == prior_fact.member_identity)
+                    .any(|member| member.as_str() == fact.member_identity)
             })
-            .map(|prior_fact| FactWire {
+            .map(|fact| FactWire {
                 origin: FactOrigin::Carried,
-                ..prior_fact.clone()
+                ..fact.clone()
             }),
     );
     merged
@@ -1144,6 +1157,7 @@ fn revision_contradiction(contradiction: Contradiction) -> RevisionError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use ix_trace_rs::trace;
 
     struct Held(Vec<(&'static str, FactStatus, Option<&'static str>)>);
 
@@ -1182,6 +1196,7 @@ mod tests {
         (member, FactStatus::Available, Some(observation))
     }
 
+    #[trace("TC-015", "FR-013-AC-8")]
     #[test]
     fn check_revision_refuses_each_contradiction_in_order() {
         let prior = Held(vec![available("m0", "a")]);
@@ -1208,7 +1223,9 @@ mod tests {
                 State::Incomplete,
                 &[]
             ),
-            Err(ListedContradiction::CompleteRegressed { prior_upper: 100 })
+            Err(ListedContradiction::CompleteRegressed {
+                prior_upper: Some(100)
+            })
         );
         let uncovered = [listed("m1", FactStatus::Available, Some("b"), 80)];
         assert_eq!(
@@ -1232,7 +1249,10 @@ mod tests {
                 State::Complete,
                 &changed
             ),
-            Err(ListedContradiction::MemberObservationChanged { listed: 0 })
+            Err(ListedContradiction::MemberObservationChanged {
+                listed: 0,
+                prior_observation: Some("a".to_owned())
+            })
         );
         let after = [listed("m2", FactStatus::Available, Some("c"), 101)];
         assert_eq!(
@@ -1248,6 +1268,7 @@ mod tests {
         );
     }
 
+    #[trace("TC-015", "FR-013-AC-8")]
     #[test]
     fn check_revision_none_upper_places_nothing_at_or_before_it() {
         let prior = Held(vec![]);
@@ -1276,6 +1297,7 @@ mod tests {
         );
     }
 
+    #[trace("TC-015", "FR-013-AC-8")]
     #[test]
     fn check_revision_accepts_stamp_zero_after_an_incomplete_prior() {
         let prior = Held(vec![]);
@@ -1293,6 +1315,7 @@ mod tests {
         );
     }
 
+    #[trace("TC-015", "FR-013-AC-8")]
     #[test]
     fn check_revision_refuses_changed_observation_after_an_incomplete_prior() {
         let prior = Held(vec![available("m0", "a")]);
@@ -1306,10 +1329,14 @@ mod tests {
                 State::Incomplete,
                 &changed
             ),
-            Err(ListedContradiction::MemberObservationChanged { listed: 0 })
+            Err(ListedContradiction::MemberObservationChanged {
+                listed: 0,
+                prior_observation: Some("a".to_owned())
+            })
         );
     }
 
+    #[trace("TC-015", "FR-013-AC-8")]
     #[test]
     fn check_revision_reads_some_and_none_observation_identity_as_different() {
         let prior = Held(vec![available("m0", "")]);
@@ -1323,7 +1350,10 @@ mod tests {
                 State::Complete,
                 &none
             ),
-            Err(ListedContradiction::MemberObservationChanged { listed: 0 })
+            Err(ListedContradiction::MemberObservationChanged {
+                listed: 0,
+                prior_observation: Some(String::new())
+            })
         );
         let same = [listed("m0", FactStatus::Available, Some(""), 0)];
         assert_eq!(
@@ -1339,8 +1369,9 @@ mod tests {
         );
     }
 
+    #[trace("TC-015", "FR-013-AC-8")]
     #[test]
-    fn merge_facts_carries_prior_facts_outside_the_successor_population() {
+    fn merge_facts_orders_the_population_then_carries_prior_facts_outside_it() {
         let wire = |member: &str, origin| FactWire {
             member_identity: member.to_owned(),
             observation_identity: Some("a".to_owned()),
@@ -1348,18 +1379,38 @@ mod tests {
             origin,
         };
         let prior = [
-            wire("in", FactOrigin::Selected),
-            wire("out", FactOrigin::Selected),
+            wire("out1", FactOrigin::Selected),
+            wire("b", FactOrigin::Selected),
+            wire("out2", FactOrigin::Selected),
         ];
-        let selected = [Fact::new(
-            Identity::new("in"),
-            Some(Identity::new("a")),
-            FactStatus::Available,
-        )];
-        let merged = merge_facts(&prior, &selected);
-        assert_eq!(merged.len(), 2);
-        assert_eq!(merged[1].member_identity, "out");
-        assert_eq!(merged[1].origin, FactOrigin::Carried);
+        let selected = [
+            Fact::new(
+                Identity::new("c"),
+                Some(Identity::new("a")),
+                FactStatus::Available,
+            ),
+            Fact::new(
+                Identity::new("a"),
+                Some(Identity::new("a")),
+                FactStatus::Available,
+            ),
+        ];
+        let population = ["a", "b", "c"].map(Identity::new);
+        let merged = merge_facts(&prior, &selected, &population);
+        let order = merged
+            .iter()
+            .map(|fact| (fact.member_identity.as_str(), fact.origin))
+            .collect::<Vec<_>>();
+        assert_eq!(
+            order,
+            [
+                ("a", FactOrigin::Selected),
+                ("b", FactOrigin::Carried),
+                ("c", FactOrigin::Selected),
+                ("out1", FactOrigin::Carried),
+                ("out2", FactOrigin::Carried),
+            ]
+        );
     }
 
     #[test]

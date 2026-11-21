@@ -57,7 +57,7 @@ The module `authority::completeness` SHALL publish, in addition to FR-004's
 | `RetainedHolding` | trait with `type Key: ?Sized` and `held(&self, key: &Key) -> Option<HeldFact<'_>>`; implemented for `View` keyed by member identity |
 | `HeldFact` | `{ status: FactStatus, observation_identity: Option<&str> }` |
 | `ListedFact` | `{ key: &K, status: FactStatus, observation_identity: Option<&str>, placed: i128 }` |
-| `ListedContradiction` | `BoundaryRegressed { prior_upper, successor_upper }`, `CompleteRegressed { prior_upper }`, `UncoveredMember { listed }`, `MemberObservationChanged { listed }`, where `listed` indexes the listed facts |
+| `ListedContradiction` | `BoundaryRegressed { prior_upper, successor_upper }`, `CompleteRegressed { prior_upper: Option<i128> }`, `UncoveredMember { listed }`, `MemberObservationChanged { listed, prior_observation: Option<String> }`, where `listed` indexes the listed facts |
 
 `Contradiction::code(&self) -> &'static str` SHALL return the stable labels
 `QOBS-REV-BOUNDARY-REGRESSED`, `QOBS-REV-COMPLETE-REGRESSED`,
@@ -155,7 +155,7 @@ owner's rule.
    `derive` gives the selection's own facts is `Incomplete`:
    `CompleteRegressed`. An `Incomplete` successor of an `Incomplete` prior,
    and a `Complete` or `Contradicted` successor of any prior, pass this check.
-3. **Uncovered member.** In the population's order, a member of the
+3. **Uncovered member (3a, then 3b).** In the population's order, a member of the
    successor's required population that the selection omits and `prior` does
    not hold, wherever it is placed: it can be neither carried nor assessed.
    Then, in the selection's order, a member the selection lists `Available` or `Contradicted`, placed at or before `prior`'s boundary,
@@ -180,10 +180,10 @@ listing, and a reported contradiction is never erased.
 
 ### Revision without a history
 
-`check_revision` SHALL apply checks 1, 2, 3 (for the listed members) and 4 in that order and return the first contradiction, for a caller that retains its held members without a completeness document. `revise` SHALL apply those checks through `check_revision`, so the two cannot differ; check 3 for omitted members of the successor population stays in `revise`, which alone sees that population.
+`check_revision` SHALL apply checks 1, 2, 3b (the listed members) and 4 in that order and return the first contradiction, for a caller that retains its held members without a completeness document. `revise` SHALL apply those checks through `check_revision`, so the two cannot differ; check 3a, for omitted members of the successor population, stays in `revise`, which alone sees that population.
 
 - A `None` upper bound places nothing at or before it: no listed member is uncovered by it and it takes part in no boundary comparison.
-- `prior_state` and `successor_state` are read as given, so a caller may pass a retained incomplete state with no boundary. Per-fact status governs only checks 3 and 4: a listed member counts for check 3 when `Available` or `Contradicted`, and for check 4 when `Available`.
+- `prior_state` and `successor_state` are read as given, so a caller may pass a retained incomplete state with no boundary. Per-fact status governs only checks 3 and 4: a listed member counts for check 3b when `Available` or `Contradicted`, and for check 4 when `Available`.
 - Check 4 compares observation identities as optional values: a present identity differs from an absent one.
 - A member placed at or before the upper bound that the retained assessment holds, whatever its status, is not uncovered.
 
