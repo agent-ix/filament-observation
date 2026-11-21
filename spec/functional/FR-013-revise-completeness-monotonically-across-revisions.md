@@ -53,6 +53,11 @@ The module `authority::completeness` SHALL publish, in addition to FR-004's
 | `RevisionStage` | `Prior`, `Selection`, `Revision`, `Document` |
 | `RevisionCause` | `Authority(Error)` or `Contradiction(Contradiction)` |
 | `Contradiction` | `BoundaryRegressed { prior: TemporalBoundary, successor: TemporalBoundary }`, `CompleteRegressed { prior: TemporalBoundary }`, `UncoveredMember { member_identity: Identity, prior: TemporalBoundary }`, `MemberObservationChanged { member_identity: Identity, prior_observation: Identity, successor_observation: Identity }` |
+| `check_revision(prior_upper: Option<i128>, prior_state: State, prior: &H, successor_upper: Option<i128>, successor_state: State, listed: &[ListedFact<'_, H::Key>]) -> Result<(), ListedContradiction>` for `H: RetainedHolding` | the revision rule without a history |
+| `RetainedHolding` | trait with `type Key: ?Sized` and `held(&self, key: &Key) -> Option<HeldFact<'_>>`; implemented for `View` keyed by member identity |
+| `HeldFact` | `{ status: FactStatus, observation_identity: Option<&str> }` |
+| `ListedFact` | `{ key: &K, status: FactStatus, observation_identity: Option<&str>, placed: i128 }` |
+| `ListedContradiction` | `BoundaryRegressed { prior_upper, successor_upper }`, `CompleteRegressed { prior_upper }`, `UncoveredMember { listed }`, `MemberObservationChanged { listed }`, where `listed` indexes the listed facts |
 
 `Contradiction::code(&self) -> &'static str` SHALL return the stable labels
 `QOBS-REV-BOUNDARY-REGRESSED`, `QOBS-REV-COMPLETE-REGRESSED`,
@@ -173,6 +178,15 @@ held that the selection omits SHALL be carried with `prior`'s fact. So an
 available member is not lost by a later omission or a later `Incomplete`
 listing, and a reported contradiction is never erased.
 
+### Revision without a history
+
+`check_revision` SHALL apply checks 1, 2, 3 (for the listed members) and 4 in that order and return the first contradiction, for a caller that retains its held members without a completeness document. `revise` SHALL apply those checks through `check_revision`, so the two cannot differ; check 3 for omitted members of the successor population stays in `revise`, which alone sees that population.
+
+- A `None` upper bound places nothing at or before it: no listed member is uncovered by it and it takes part in no boundary comparison.
+- `prior_state` and `successor_state` are read as given, so a caller may pass a retained incomplete state with no boundary. Per-fact status governs only checks 3 and 4: a listed member counts for check 3 when `Available` or `Contradicted`, and for check 4 when `Available`.
+- Check 4 compares observation identities as optional values: a present identity differs from an absent one.
+- A member placed at or before the upper bound that the retained assessment holds, whatever its status, is not uncovered.
+
 ### Refusal leaves the prior unchanged
 
 `prior` is borrowed immutably and is never altered. On any refusal the
@@ -226,6 +240,7 @@ unchanged.
 | FR-013-AC-5 | `read_revised` of `revise`'s bytes returns a view equal to the revised document; the same bytes with one byte changed, re-encoded non-canonically, or read against another `prior` refuse at `Document` with the strict reader's error; `read` of the revised bytes refuses `ExpectedMismatch` and `read_revised` of a derived document refuses at `Document`; revising twice from the same inputs gives equal bytes. | Test (TC-015) |
 | FR-013-AC-6 | A revised population of one entry over `max_population_entries` refuses `Document` `ResourceIncomplete`; `revise` takes no progress view, and admitting progress through `admit_progress` over the same history before and after a revision returns equal capabilities. | Test (TC-015) |
 | FR-013-AC-7 | End to end: `prior` is `derive`d from `Selection::new` over members stamped 0, 30, 60 and 90, `Complete` through 100, and read back. The successor history admits members stamped 0, 30, 60, 90 and 120, and its `Selection` (through 140) lists the members at 0, 60, 90 and 120 and omits the one at 30. `derive` of that selection refuses `ExpectedMismatch` because it does not cover the population. `revise` accepts it: the revised population lists all five members in population order, the one at 30 with `prior`'s fact and `origin` `carried`, the state is `Complete`, and `read_revised` admits the bytes. The same successor omitting the member at 120, which `prior` does not hold, refuses `Revision` `UncoveredMember` naming it. | Test (TC-015) |
+| FR-013-AC-8 | `check_revision` returns `BoundaryRegressed`, `CompleteRegressed`, `UncoveredMember` and `MemberObservationChanged` for the cases of checks 1 to 4 in that order; with a `None` prior upper bound a member stamped 0 is accepted after an `Incomplete` prior while a changed observation identity of a held `Available` member is still refused; a present and an absent observation identity differ; and a fact `prior` holds for a member outside the successor population is carried with `origin` `carried`, so a later revision that lists that member at or before the boundary is not uncovered. | Test (TC-015) |
 
 ## Dependencies
 
