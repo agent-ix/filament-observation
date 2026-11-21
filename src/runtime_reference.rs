@@ -128,6 +128,25 @@ impl QualifiedSubject {
         }
     }
 
+    /// Constructs a subject with the exact authority carried by its input.
+    ///
+    /// This constructor preserves the authority verbatim; it does not admit
+    /// it against a selected Producer bundle. [`crate::admit`] performs that
+    /// comparison and returns `InvalidReference(ForeignAuthority)` when the
+    /// supplied authority does not match.
+    #[must_use]
+    pub fn from_authority(
+        authority: AdmittedBundleKey,
+        kind: SubjectKind,
+        identity: SubjectIdentity,
+    ) -> Self {
+        Self {
+            authority,
+            kind,
+            identity,
+        }
+    }
+
     /// Returns the exact Producer authority key.
     #[must_use]
     pub const fn authority(&self) -> &AdmittedBundleKey {
