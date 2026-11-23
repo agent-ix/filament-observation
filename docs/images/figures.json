@@ -1,0 +1,62 @@
+{
+  "figures": [
+    {
+      "id": "hero",
+      "width": 980, "height": 330,
+      "label": "A raw record arrives with the package, binding, subject, scope and limits the caller selected. admit() checks every selection. The result is a qualified observation that rules can be evaluated over, an incomplete answer naming what is missing, or a typed refusal.",
+      "items": [
+        {"k":"box","at":[0,10,190,56],"role":"ink","title":"raw record","subs":["signal · value · times"]},
+        {"k":"box","at":[0,82,190,56],"role":"ink","title":"binding","subs":["source · schema · unit"]},
+        {"k":"box","at":[0,154,190,56],"role":"ink","title":"subject","subs":["who it is about"]},
+        {"k":"box","at":[0,226,190,56],"role":"ink","title":"scope","subs":["population · window"]},
+        {"k":"line","points":[[190,38],[240,38]],"role":"ink","arrow":false},
+        {"k":"line","points":[[190,110],[240,110]],"role":"ink","arrow":false},
+        {"k":"line","points":[[190,182],[240,182]],"role":"ink","arrow":false},
+        {"k":"line","points":[[190,254],[240,254]],"role":"ink","arrow":false},
+        {"k":"line","points":[[240,38],[240,254]],"role":"ink","arrow":false},
+        {"k":"line","points":[[240,142],[276,142]],"role":"ink"},
+        {"k":"box","at":[280,114,170,56],"role":"logic","title":"admit","subs":["every selection exact"]},
+        {"k":"line","points":[[450,142],[500,142]],"role":"logic"},
+        {"k":"line","points":[[500,42],[500,242]],"role":"logic","arrow":false},
+        {"k":"line","points":[[500,42],[530,42]],"role":"model"},
+        {"k":"line","points":[[500,142],[530,142]],"role":"evidence"},
+        {"k":"line","points":[[500,242],[530,242]],"role":"evidence"},
+        {"k":"box","at":[534,14,200,56],"role":"model","title":"qualified observation","subs":["records + every premise"]},
+        {"k":"box","at":[534,114,200,56],"role":"evidence","title":"incomplete","subs":["names what is missing"]},
+        {"k":"box","at":[534,214,200,56],"role":"evidence","title":"refused","subs":["typed cause"]},
+        {"k":"line","points":[[734,42],[790,42]],"role":"model"},
+        {"k":"box","at":[794,14,186,56],"role":"ink","title":"rules","subs":["evaluated over it"]},
+        {"k":"text","at":[534,296],"text":"A MISSING VALUE IS NEVER BOOLEAN FALSE","role":"muted","size":12},
+        {"k":"legend","at":[0,324],"entries":[["logic","compiler stage","box"],["model","checked package / IR","box"],["evidence","no truth value","box"],["ink","input","box"]]}
+      ]
+    },
+    {
+      "id": "record",
+      "width": 980, "height": 200,
+      "label": "An admitted record carries the signal, trigger, unit and schema; the source and typed subject; its clock position with event time and ingestion time kept separate; the clock and its uncertainty; whether it is internal or external; and a valuation that is either present with a type or explicitly missing.",
+      "items": [
+        {"k":"text","at":[0,12],"text":"WHAT","role":"muted","size":12},
+        {"k":"box","at":[0,22,184,56],"role":"ink","title":"signal","subs":["trigger · unit"]},
+        {"k":"line","points":[[92,78],[92,108]],"role":"ink","arrow":false},
+        {"k":"text","at":[199,12],"text":"WHO","role":"muted","size":12},
+        {"k":"box","at":[199,22,184,56],"role":"ink","title":"source + subject","subs":["typed subject"]},
+        {"k":"line","points":[[291,78],[291,108]],"role":"ink","arrow":false},
+        {"k":"text","at":[398,12],"text":"WHEN","role":"muted","size":12},
+        {"k":"box","at":[398,22,184,56],"role":"ink","title":"position + times","subs":["event · ingestion"]},
+        {"k":"line","points":[[490,78],[490,108]],"role":"ink","arrow":false},
+        {"k":"text","at":[597,12],"text":"CLOCK","role":"muted","size":12},
+        {"k":"box","at":[597,22,184,56],"role":"ink","title":"clock, uncertainty","subs":["revision · nanos"]},
+        {"k":"line","points":[[689,78],[689,108]],"role":"ink","arrow":false},
+        {"k":"text","at":[796,12],"text":"PROVENANCE","role":"muted","size":12},
+        {"k":"box","at":[796,22,184,56],"role":"ink","title":"internal | external","subs":["fact's origin"]},
+        {"k":"line","points":[[888,78],[888,108]],"role":"ink","arrow":false},
+        {"k":"line","points":[[92,108],[888,108]],"role":"ink","arrow":false},
+        {"k":"line","points":[[490,108],[490,124]],"role":"ink"},
+        {"k":"box","at":[330,128,320,56],"role":"model","title":"admitted record","subs":["identity derived, not trusted"]},
+        {"k":"box","at":[690,128,290,56],"role":"model","title":"valuation","subs":["present + type  |  missing"]},
+        {"k":"line","points":[[650,156],[687,156]],"role":"model","arrow":false}
+      ]
+    },
+    {"id": "ecosystem", "construct": {"name": "ecosystem", "here": "filament-observation"}}
+  ]
+}
