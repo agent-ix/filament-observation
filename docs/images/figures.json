@@ -1,4 +1,8 @@
 {
+  "data": {
+    "f_trigger": {"from": "regex", "path": "src/lib.rs", "pattern": "pub (trigger)_identity: Identity"},
+    "f_unit": {"from": "regex", "path": "src/lib.rs", "pattern": "pub (unit): Identity"}
+  },
   "figures": [
     {
       "id": "hero",
@@ -36,7 +40,7 @@
       "label": "An admitted record carries the signal, trigger, unit and schema; the source and typed subject; its clock position with event time and ingestion time kept separate; the clock and its uncertainty; whether it is internal or external; and a valuation that is either present with a type or explicitly missing.",
       "items": [
         {"k":"text","at":[0,12],"text":"WHAT","role":"muted","size":12},
-        {"k":"box","at":[0,22,184,56],"role":"ink","title":"signal","subs":["trigger · unit"]},
+        {"k":"box","at":[0,22,184,56],"role":"ink","title":"signal","subs":["{f_trigger} · {f_unit}"]},
         {"k":"line","points":[[92,78],[92,108]],"role":"ink","arrow":false},
         {"k":"text","at":[199,12],"text":"WHO","role":"muted","size":12},
         {"k":"box","at":[199,22,184,56],"role":"ink","title":"source + subject","subs":["typed subject"]},
