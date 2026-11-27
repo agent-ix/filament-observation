@@ -123,7 +123,6 @@ impl CaptureView {
     }
 
     /// Iterates every complete typed capture binding in canonical order.
-    #[must_use]
     pub fn bindings(&self) -> impl ExactSizeIterator<Item = BindingRef<'_>> {
         self.bindings.iter().map(|binding| BindingRef {
             capture_identity: &binding.capture_identity,

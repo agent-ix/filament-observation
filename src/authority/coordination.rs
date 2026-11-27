@@ -961,7 +961,6 @@ impl Run {
     }
 
     /// Returns final outcomes in repair schedule order.
-    #[must_use]
     pub fn outcomes(&self) -> impl ExactSizeIterator<Item = &OutcomeRecord> {
         self.outcomes.iter()
     }
@@ -976,13 +975,11 @@ impl Run {
     }
 
     /// Returns byte-identical unaffected prior results.
-    #[must_use]
     pub fn unaffected(&self) -> impl ExactSizeIterator<Item = &RetainedResult> {
         self.unaffected.iter()
     }
 
     /// Returns incremental prefix diagnostics; batch runs expose none.
-    #[must_use]
     pub fn prefixes(&self) -> impl ExactSizeIterator<Item = &PrefixEvent> {
         self.prefixes.iter()
     }

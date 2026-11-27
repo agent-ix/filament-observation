@@ -98,7 +98,6 @@ impl PositionLedgerView {
     }
 
     /// Iterates canonical position text and observation identity in order.
-    #[must_use]
     pub fn positions(&self) -> impl ExactSizeIterator<Item = (&str, &str)> {
         self.positions
             .iter()

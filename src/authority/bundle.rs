@@ -399,43 +399,36 @@ struct BundleUsageWire {
 
 impl BundleView {
     /// Returns the canonical complete component set.
-    #[must_use]
     pub fn components(&self) -> impl ExactSizeIterator<Item = ComponentRef<'_>> + '_ {
         self.components.iter().map(ComponentRef)
     }
 
     /// Returns the canonical declared replacements.
-    #[must_use]
     pub fn replacements(&self) -> impl ExactSizeIterator<Item = ReplacementRef<'_>> + '_ {
         self.replacements.iter().map(ReplacementRef)
     }
 
     /// Returns the typed record/value/availability facts without ambient lookup.
-    #[must_use]
     pub fn records(&self) -> impl ExactSizeIterator<Item = EmbeddedFactRef<'_>> + '_ {
         self.records.iter().map(EmbeddedFactRef)
     }
 
     /// Returns population membership and completeness facts.
-    #[must_use]
     pub fn populations(&self) -> impl ExactSizeIterator<Item = EmbeddedFactRef<'_>> + '_ {
         self.populations.iter().map(EmbeddedFactRef)
     }
 
     /// Returns semantic position and clock-coordinate facts.
-    #[must_use]
     pub fn positions(&self) -> impl ExactSizeIterator<Item = EmbeddedFactRef<'_>> + '_ {
         self.positions.iter().map(EmbeddedFactRef)
     }
 
     /// Returns progress and closure facts.
-    #[must_use]
     pub fn progress(&self) -> impl ExactSizeIterator<Item = EmbeddedFactRef<'_>> + '_ {
         self.progress.iter().map(EmbeddedFactRef)
     }
 
     /// Returns explicit conflict projections.
-    #[must_use]
     pub fn conflicts(&self) -> impl ExactSizeIterator<Item = ConflictRef<'_>> + '_ {
         self.conflicts.iter().map(ConflictRef)
     }
@@ -809,7 +802,6 @@ impl LineageView {
     }
 
     /// Returns every known direct child in canonical identity order.
-    #[must_use]
     pub fn direct_children(&self) -> impl ExactSizeIterator<Item = ChildRef<'_>> + '_ {
         self.direct_children.iter().map(ChildRef)
     }

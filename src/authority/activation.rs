@@ -660,7 +660,6 @@ impl ActivationView {
     }
 
     /// Iterates retained activation captures in canonical order.
-    #[must_use]
     pub fn captures(&self) -> impl ExactSizeIterator<Item = CaptureRef<'_>> {
         self.captures.iter().map(CaptureWire::as_ref)
     }
