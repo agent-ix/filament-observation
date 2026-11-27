@@ -553,37 +553,31 @@ impl Plan {
     }
 
     /// Returns the exact bundle replacement seeds.
-    #[must_use]
     pub fn changed_facts(&self) -> impl ExactSizeIterator<Item = &ChangedFact> {
         self.changed_facts.iter()
     }
 
     /// Returns affected result identities in canonical identity order.
-    #[must_use]
     pub fn affected(&self) -> impl ExactSizeIterator<Item = &Identity> {
         self.affected.iter().map(PriorResult::identity)
     }
 
     /// Returns affected prior results retained for later supersession.
-    #[must_use]
     pub fn affected_prior(&self) -> impl ExactSizeIterator<Item = RetainedResultRef<'_>> {
         self.affected.iter().map(RetainedResultRef)
     }
 
     /// Returns byte-identical unaffected prior results in canonical identity order.
-    #[must_use]
     pub fn unaffected(&self) -> impl ExactSizeIterator<Item = RetainedResultRef<'_>> {
         self.unaffected.iter().map(RetainedResultRef)
     }
 
     /// Returns every explicit direct dependency of an affected result.
-    #[must_use]
     pub fn dependencies(&self) -> impl ExactSizeIterator<Item = &DependencyEdge> {
         self.dependencies.iter()
     }
 
     /// Returns the dependency-safe canonical recomputation schedule.
-    #[must_use]
     pub fn recomputation_order(&self) -> impl ExactSizeIterator<Item = &Identity> {
         self.recomputation_order.iter()
     }

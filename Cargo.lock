@@ -204,7 +204,6 @@ version = "0.1.1"
 dependencies = [
  "allocation-counter",
  "filament-exact",
- "filament-semantic-value",
  "ix-trace-rs",
  "jsonschema",
  "proptest",
@@ -212,16 +211,6 @@ dependencies = [
  "serde",
  "serde_json",
  "sha2",
- "thiserror",
-]
-
-[[package]]
-name = "filament-semantic-value"
-version = "0.1.5"
-source = "git+https://github.com/agent-ix/filament-semantic-value?rev=95a9034d5ac8abe856f1d67428dd60c9bbc85fc5#95a9034d5ac8abe856f1d67428dd60c9bbc85fc5"
-dependencies = [
- "filament-exact",
- "quire-canonical",
  "thiserror",
 ]
 
