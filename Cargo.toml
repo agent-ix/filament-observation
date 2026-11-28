@@ -21,7 +21,7 @@ resolver = "2"
 test-support = []
 
 [dependencies]
-quire-canonical = { version = "=0.3.2", git = "https://github.com/agent-ix/quire-canonical", tag = "v0.3.2", features = ["serde_json"] }
+quire-canonical = { version = "=0.3.3", git = "https://github.com/agent-ix/quire-canonical", tag = "quire-canonical-v0.3.3", features = ["serde_json"] }
 filament-exact = { git = "https://github.com/agent-ix/filament-exact", rev = "743c42e4e458782bf7a8befc3b76cc8a190ed727", features = ["json"] }
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = { version = "=1.0.151", features = ["raw_value"] }
